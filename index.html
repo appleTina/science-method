@@ -125,7 +125,6 @@
     .admin-nav { position: absolute; top: 20px; right: 20px; }
     .admin-nav button { width: auto; background: #6c757d; padding: 6px 12px; font-size: 14px; }
     
-    /* 後台管理介面樣式 */
     .admin-filter-bar {
       display: flex;
       gap: 15px;
@@ -158,10 +157,7 @@
     }
     .student-card h4 { text-align: left; margin: 0; color: #007bff; }
     
-    .action-btn-group {
-      display: flex;
-      gap: 8px;
-    }
+    .action-btn-group { display: flex; gap: 8px; }
 
     .btn-download-screenshot {
       background-color: #28a745;
@@ -319,7 +315,6 @@
       <section>
         <h3>四、提出假說</h3>
         
-        <!-- 自動顯示前一頁填寫的因素 -->
         <div class="info-box">
           📌 <strong>你在上頁填寫影響反應時間的因素為：</strong><br>
           <span id="display-q-factors" style="font-weight:bold; color:#0056b3;">（尚未填寫）</span>
@@ -474,7 +469,6 @@
     }
     const database = firebase.database();
 
-    // 審核狀態變數
     let teacherCheckedSec5 = false;
     let teacherCheckedSec6 = false;
 
@@ -663,7 +657,6 @@
       });
     }
 
-    // 教師驗證機制
     function teacherVerify(secKey) {
       const pwd = prompt("請請教師輸入審核密碼：");
       if (pwd === "bio1234") {
@@ -687,10 +680,9 @@
       }
     }
 
-    // 手動暫存進度
     function manualSaveDraft() {
       saveDataSilently();
-      alert("✅ 已成功暫存目前填寫的進度至雲端！下次登入可繼續作答。");
+      alert("✅ 已成功暫存目前填寫的進度與各頁畫面至雲端！");
     }
 
     function goToStep2() {
@@ -738,22 +730,37 @@
       alert('學習單已順利提交至 Firebase 雲端資料庫！');
     }
 
-    // 擷取目前活動頁面圖片並傳回 Base64
-    async function captureActivePageImage() {
+    // 依序切換全頁面 (Step1~Step5) 並逐頁拍攝截圖
+    async function captureAllPagesImages() {
+      const pages = ['page-step1', 'page-step2', 'page-step3', 'page-step4', 'page-step5'];
       const activePage = document.querySelector('.page.active');
-      if (!activePage || activePage.id === 'page-home' || activePage.id === 'page-admin') return null;
+      const activeId = activePage ? activePage.id : 'page-step1';
       
-      try {
-        const canvas = await html2canvas(activePage, {
-          scale: 1,
-          useCORS: true,
-          logging: false
-        });
-        return canvas.toDataURL('image/jpeg', 0.6); // 壓縮為0.6質量的JPEG以優化雲端存儲容量
-      } catch (err) {
-        console.error("截圖失敗:", err);
-        return null;
+      let screenshots = {};
+
+      for (let pageId of pages) {
+        const targetPage = document.getElementById(pageId);
+        if (!targetPage) continue;
+        
+        targetPage.classList.add('active');
+        try {
+          const canvas = await html2canvas(targetPage, {
+            scale: 1,
+            useCORS: true,
+            logging: false
+          });
+          screenshots[pageId] = canvas.toDataURL('image/jpeg', 0.5);
+        } catch (err) {
+          console.error(`截圖 ${pageId} 失敗:`, err);
+        }
+        targetPage.classList.remove('active');
       }
+
+      // 復原原本停留的頁面
+      const current = document.getElementById(activeId);
+      if (current) current.classList.add('active');
+
+      return screenshots;
     }
 
     async function saveDataSilently() {
@@ -783,8 +790,8 @@
         });
       }
 
-      // 自動產生當前頁面截圖 Base64
-      const screenshotData = await captureActivePageImage();
+      // 自動產生全頁面截圖
+      const pageScreenshots = await captureAllPagesImages();
 
       const formData = {
         docKey: window.currentDocKey,
@@ -817,8 +824,8 @@
         updatedAt: new Date().toLocaleString()
       };
 
-      if (screenshotData) {
-        formData.lastScreenshot = screenshotData;
+      if (Object.keys(pageScreenshots).length > 0) {
+        formData.allScreenshots = pageScreenshots;
       }
 
       database.ref('worksheets/' + window.currentDocKey).update(formData);
@@ -1026,7 +1033,6 @@
       ctx.fillText(descB, xB + barWidth / 2, height - paddingBottom + 20);
     }
 
-    // 教師後台登入密碼 bio1234
     function showAdminLogin() {
       const pwd = prompt('請輸入教師後台密碼：');
       if (pwd === 'bio1234') {
@@ -1037,7 +1043,6 @@
       }
     }
 
-    // 載入全班 Firebase 雲端資料
     function loadAdminDataFromFirebase() {
       const listContainer = document.getElementById('admin-data-list');
       listContainer.innerHTML = '載入雲端資料中...';
@@ -1063,23 +1068,38 @@
       });
     }
 
-    // 下載學生畫面截圖
-    function downloadScreenshot(docKey, className, filename) {
+    // 下載學生全頁面截圖 (頁面1~5)
+    async function downloadAllScreenshots(docKey, className, filename) {
       const record = window.allAdminRecords.find(r => r.docKey === docKey);
-      if (!record || !record.lastScreenshot) {
-        alert('該組學生尚未產生畫面截圖（需請學生登入並執行暫存或換頁以觸發截圖）');
+      if (!record || !record.allScreenshots || Object.keys(record.allScreenshots).length === 0) {
+        alert('該組學生尚未產生全頁面截圖（需請學生登入並點擊暫存或換頁）');
         return;
       }
       
-      const link = document.createElement('a');
-      link.href = record.lastScreenshot;
-      link.download = `學習單截圖_${className}班_${filename}.jpg`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const pageNames = {
+        'page-step1': '頁面1_問題觀察',
+        'page-step2': '頁面2_參考資料',
+        'page-step3': '頁面3_反應時間測試',
+        'page-step4': '頁面4_假說與實驗設計',
+        'page-step5': '頁面5_研討與改進'
+      };
+
+      let count = 0;
+      for (let key in record.allScreenshots) {
+        const link = document.createElement('a');
+        link.href = record.allScreenshots[key];
+        const pageLabel = pageNames[key] || key;
+        link.download = `學習單_${className}班_${filename}_${pageLabel}.jpg`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // 微小停頓避開瀏覽器連續下載限制
+        await new Promise(res => setTimeout(res, 300));
+        count++;
+      }
     }
 
-    // 根據班級篩選並渲染完整的學生解答卡片
     function filterAdminDisplay() {
       const selectedClass = document.getElementById('admin-class-filter').value;
       const listContainer = document.getElementById('admin-data-list');
@@ -1125,7 +1145,7 @@
             <div class="student-card-header">
               <h4>【${data.className} 班】組員：${memberStr}</h4>
               <div class="action-btn-group">
-                <button class="btn-download-screenshot" onclick="downloadScreenshot('${data.docKey}', '${data.className}', '${data.members[0]?.name || '截圖'}')">📸 下載作答截圖</button>
+                <button class="btn-download-screenshot" onclick="downloadAllScreenshots('${data.docKey}', '${data.className}', '${data.members[0]?.name || '學生'}')">📸 下載全部作答截圖 (1~5頁)</button>
                 <button class="btn-delete-single" onclick="deleteSingleStudent('${data.docKey}', '${data.className}', '${memberStr}')">🗑️ 刪除此筆資料</button>
               </div>
             </div>
@@ -1178,7 +1198,6 @@
       listContainer.innerHTML = html;
     }
 
-    // 刪除個別學生資料
     function deleteSingleStudent(docKey, className, memberStr) {
       if (confirm(`確定要刪除【${className}班 - ${memberStr}】的這筆學習單資料嗎？\n刪除後無法恢復！`)) {
         database.ref('worksheets/' + docKey).remove().then(() => {
@@ -1190,7 +1209,6 @@
       }
     }
 
-    // 兩階段一鍵清除全庫資料
     function deleteAllDataTwoStage() {
       const firstConfirm = prompt('⚠️ 警告：這將會【永久刪除所有學生的學習單紀錄】！\n若確定要清空資料庫（用於新學期/新班級），請在下方輸入驗證碼：DELETE');
       
@@ -1208,7 +1226,6 @@
       }
     }
 
-    // 匯出 CSV 檔
     function exportCSV() {
       const selectedClass = document.getElementById('admin-class-filter').value;
       const allRecords = window.allAdminRecords || [];
