@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>探究自然的方法 - 線上學習單 (Firebase 雲端版)</title>
+  <title>探究自然的方法 - 線上學習單</title>
   
   <!-- 載入 Firebase 8.x SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -102,6 +102,14 @@
       margin-top: 10px;
     }
 
+    .link-box {
+      margin-top: 15px;
+      padding: 15px;
+      background-color: #e8f4f8;
+      border-left: 5px solid #17a2b8;
+      border-radius: 6px;
+    }
+
     .video-container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin: 20px 0; }
     .video-box { flex: 1 1 400px; aspect-ratio: 16 / 9; }
     iframe { width: 100%; height: 100%; border-radius: 8px; border: 1px solid #ddd; }
@@ -188,7 +196,7 @@
 
     <!-- 首頁：登入頁 -->
     <div id="page-home" class="page active">
-      <h1>探究自然的方法 (雲端版)</h1>
+      <h1>探究自然的方法</h1>
       
       <div class="form-group">
         <label for="class-select"><span style="color:red;">*</span> 選擇班級：</label>
@@ -223,12 +231,12 @@
 
       <div id="members-container"></div>
 
-      <button onclick="loadOrStartCourse()">進入課程 (雲端載入)</button>
+      <button onclick="loadOrStartCourse()">進入課程</button>
     </div>
 
     <!-- 階段一 -->
     <div id="page-step1" class="page">
-      <h2>探究自然的方法（階段一）</h2>
+      <h2>探究自然的方法</h2>
       <section>
         <h3>一、觀察</h3>
         <p>請觀看以下兩部交通事故相關影片：</p>
@@ -252,7 +260,7 @@
 
     <!-- 階段二 -->
     <div id="page-step2" class="page">
-      <h2>探究自然的方法（階段二）</h2>
+      <h2>探究自然的方法</h2>
       <section>
         <h3>三、參考文獻資料</h3>
         <p>參考連結：<a href="https://hpt.thb.gov.tw/topicArticle/T004" target="_blank">交通部：保持安全距離觀念 (點此開啟原始網頁)</a></p>
@@ -267,7 +275,7 @@
 
     <!-- 階段三 -->
     <div id="page-step3" class="page">
-      <h2>探究自然的方法（階段三）</h2>
+      <h2>探究自然的方法</h2>
       <section>
         <h3>反應時間測試</h3>
         <p>測試網站連結：<a href="https://www.arealme.com/reaction-test/zh/" target="_blank">點此開啟反應時間測驗網站</a></p>
@@ -287,7 +295,7 @@
 
     <!-- 階段四 -->
     <div id="page-step4" class="page">
-      <h2>探究自然的方法（階段四）</h2>
+      <h2>探究自然的方法</h2>
       <section>
         <h3>四、提出假說</h3>
         
@@ -370,7 +378,7 @@
 
     <!-- 階段五 -->
     <div id="page-step5" class="page">
-      <h2>探究自然的方法（階段五）</h2>
+      <h2>探究自然的方法</h2>
       <section>
         <h3>九、研討與改進</h3>
         <div class="form-group">
@@ -635,7 +643,7 @@
       });
     }
 
-    // 教師驗證機制
+    // 教師驗證機制（審核通過時呈現對應區塊與連結）
     function teacherVerify(secKey) {
       const pwd = prompt("請請教師輸入審核密碼：");
       if (pwd === "bio1234") {
@@ -644,7 +652,13 @@
           document.getElementById('check-container-sec5').innerHTML = '<span class="teacher-approved-badge">✅ 教師已確認審核（五、設計變因）</span>';
         } else if (secKey === 'sec6') {
           teacherCheckedSec6 = true;
-          document.getElementById('check-container-sec6').innerHTML = '<span class="teacher-approved-badge">✅ 教師已確認審核（六、實驗步驟）</span>';
+          document.getElementById('check-container-sec6').innerHTML = `
+            <span class="teacher-approved-badge">✅ 教師已確認審核（六、實驗步驟）</span>
+            <div class="link-box">
+              🎮 <strong>反應時間測試網站：</strong>
+              <a href="https://www.arealme.com/reaction-test/zh/" target="_blank">點此開啟反應時間測試網站</a>
+            </div>
+          `;
         }
         saveDataSilently();
         alert("驗證成功！已記錄教師審核標籤。");
@@ -804,7 +818,13 @@
 
       if (data.teacherCheckedSec6) {
         teacherCheckedSec6 = true;
-        document.getElementById('check-container-sec6').innerHTML = '<span class="teacher-approved-badge">✅ 教師已確認審核（六、實驗步驟）</span>';
+        document.getElementById('check-container-sec6').innerHTML = `
+          <span class="teacher-approved-badge">✅ 教師已確認審核（六、實驗步驟）</span>
+          <div class="link-box">
+            🎮 <strong>反應時間測試網站：</strong>
+            <a href="https://www.arealme.com/reaction-test/zh/" target="_blank">點此開啟反應時間測試網站</a>
+          </div>
+        `;
       }
 
       document.getElementById('record-item').value = data.recordItem || '';
