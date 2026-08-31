@@ -8,6 +8,8 @@
   <!-- 載入 Firebase 8.x SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <!-- 載入 html2canvas 網頁截圖套件 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
   <style>
     :root {
@@ -155,6 +157,24 @@
       margin-bottom: 12px;
     }
     .student-card h4 { text-align: left; margin: 0; color: #007bff; }
+    
+    .action-btn-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-download-screenshot {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      font-size: 13px;
+      border-radius: 4px;
+      cursor: pointer;
+      width: auto;
+    }
+    .btn-download-screenshot:hover { background-color: #218838; }
+
     .btn-delete-single {
       background-color: #dc3545;
       color: white;
@@ -189,8 +209,8 @@
 </head>
 <body>
 
-  <div class="container">
-    <div class="admin-nav">
+  <div class="container" id="worksheet-container">
+    <div class="admin-nav" data-html2canvas-ignore="true">
       <button onclick="showAdminLogin()">教師後台</button>
     </div>
 
@@ -252,7 +272,7 @@
           <textarea id="q-problem" placeholder="請填寫你的想法（必填）..."></textarea>
         </div>
       </section>
-      <div class="btn-group">
+      <div class="btn-group" data-html2canvas-ignore="true">
         <button class="btn-save-draft" onclick="manualSaveDraft()">💾 暫存目前進度</button>
         <button onclick="goToStep2()">下一頁：參考文獻資料 &rarr;</button>
       </div>
@@ -266,7 +286,7 @@
         <p>參考連結：<a href="https://hpt.thb.gov.tw/topicArticle/T004" target="_blank">交通部：保持安全距離觀念 (點此開啟原始網頁)</a></p>
         <img src="traffic-info.png" alt="交通部保持安全距離觀念" class="preview-image">
       </section>
-      <div class="btn-group">
+      <div class="btn-group" data-html2canvas-ignore="true">
         <button class="btn-secondary" onclick="showPage('page-step1')">&larr; 上一頁</button>
         <button class="btn-save-draft" onclick="manualSaveDraft()">💾 暫存目前進度</button>
         <button onclick="showPage('page-step3')">請聽老師指示才前往下一頁 &rarr;</button>
@@ -286,7 +306,7 @@
           <input type="text" id="q-factors" style="width:100%" placeholder="例如：精神狀況、燈光、測驗設備..." onchange="updateFactorsPreview()">
         </div>
       </section>
-      <div class="btn-group">
+      <div class="btn-group" data-html2canvas-ignore="true">
         <button class="btn-secondary" onclick="showPage('page-step2')">&larr; 上一頁</button>
         <button class="btn-save-draft" onclick="manualSaveDraft()">💾 暫存目前進度</button>
         <button onclick="goToStep4()">下一頁：提出假說 &rarr;</button>
@@ -321,7 +341,7 @@
           <tr><td>控制變因</td><td><textarea id="exp-control"></textarea></td></tr>
         </table>
         
-        <div id="check-container-sec5">
+        <div id="check-container-sec5" data-html2canvas-ignore="true">
           <button type="button" class="btn-teacher-check" onclick="teacherVerify('sec5')">🔒 教師確認（變因設計）</button>
         </div>
       </section>
@@ -329,9 +349,9 @@
       <section>
         <h3>六、設計實驗步驟</h3>
         <div id="steps-container"></div>
-        <button type="button" class="btn-add-step" onclick="addStepInput()">+ 新增步驟</button>
+        <button type="button" class="btn-add-step" onclick="addStepInput()" data-html2canvas-ignore="true">+ 新增步驟</button>
         <br><br>
-        <div id="check-container-sec6">
+        <div id="check-container-sec6" data-html2canvas-ignore="true">
           <button type="button" class="btn-teacher-check" onclick="teacherVerify('sec6')">🔒 教師確認（實驗步驟）</button>
         </div>
       </section>
@@ -358,7 +378,7 @@
           <tr><td>第 5 次</td><td><input type="number" class="exp-data-a" style="width:100%" onchange="calcExpAvg()"></td><td><input type="number" class="exp-data-b" style="width:100%" onchange="calcExpAvg()"></td></tr>
           <tr><th>平均時間 (ms)</th><td id="exp-avg-a">-</td><td id="exp-avg-b">-</td></tr>
         </table>
-        <button type="button" onclick="generateBarChart()" style="background-color: #17a2b8; margin-bottom: 15px;">📊 生成長條圖</button>
+        <button type="button" onclick="generateBarChart()" style="background-color: #17a2b8; margin-bottom: 15px;" data-html2canvas-ignore="true">📊 生成長條圖</button>
         <div id="chart-container" class="chart-container"><canvas id="barChart" width="550" height="380"></canvas></div>
       </section>
 
@@ -369,7 +389,7 @@
           <textarea id="exp-conclusion"></textarea>
         </div>
       </section>
-      <div class="btn-group">
+      <div class="btn-group" data-html2canvas-ignore="true">
         <button class="btn-secondary" onclick="showPage('page-step3')">&larr; 上一頁</button>
         <button class="btn-save-draft" onclick="manualSaveDraft()">💾 暫存目前進度</button>
         <button onclick="goToStep5()">下一頁：研討與改進 &rarr;</button>
@@ -394,7 +414,7 @@
           <textarea id="disc-interesting"></textarea>
         </div>
       </section>
-      <div class="btn-group">
+      <div class="btn-group" data-html2canvas-ignore="true">
         <button class="btn-secondary" onclick="showPage('page-step4')">&larr; 上一頁</button>
         <button class="btn-save-draft" onclick="manualSaveDraft()">💾 暫存目前進度</button>
         <button onclick="saveData()">完成並提交學習單</button>
@@ -402,7 +422,7 @@
     </div>
 
     <!-- 教師後台 -->
-    <div id="page-admin" class="page">
+    <div id="page-admin" class="page" data-html2canvas-ignore="true">
       <h2>教師後台管理 (Firebase 雲端同步)</h2>
       
       <div class="admin-filter-bar">
@@ -556,7 +576,7 @@
         div.innerHTML = `
           <span class="step-label">步驟 ${idx + 1}：</span>
           <input type="text" class="step-input" value="${text}">
-          <button type="button" class="btn-del-step" onclick="removeStepInput(this)">刪除</button>
+          <button type="button" class="btn-del-step" onclick="removeStepInput(this)" data-html2canvas-ignore="true">刪除</button>
         `;
         container.appendChild(div);
       });
@@ -571,7 +591,7 @@
       div.innerHTML = `
         <span class="step-label">步驟 ${count + 1}：</span>
         <input type="text" class="step-input">
-        <button type="button" class="btn-del-step" onclick="removeStepInput(this)">刪除</button>
+        <button type="button" class="btn-del-step" onclick="removeStepInput(this)" data-html2canvas-ignore="true">刪除</button>
       `;
       container.appendChild(div);
     }
@@ -643,7 +663,7 @@
       });
     }
 
-    // 教師驗證機制（審核通過時呈現對應區塊與連結）
+    // 教師驗證機制
     function teacherVerify(secKey) {
       const pwd = prompt("請請教師輸入審核密碼：");
       if (pwd === "bio1234") {
@@ -667,7 +687,7 @@
       }
     }
 
-    // 手動暫存進度（不強制欄位檢查）
+    // 手動暫存進度
     function manualSaveDraft() {
       saveDataSilently();
       alert("✅ 已成功暫存目前填寫的進度至雲端！下次登入可繼續作答。");
@@ -718,7 +738,25 @@
       alert('學習單已順利提交至 Firebase 雲端資料庫！');
     }
 
-    function saveDataSilently() {
+    // 擷取目前活動頁面圖片並傳回 Base64
+    async function captureActivePageImage() {
+      const activePage = document.querySelector('.page.active');
+      if (!activePage || activePage.id === 'page-home' || activePage.id === 'page-admin') return null;
+      
+      try {
+        const canvas = await html2canvas(activePage, {
+          scale: 1,
+          useCORS: true,
+          logging: false
+        });
+        return canvas.toDataURL('image/jpeg', 0.6); // 壓縮為0.6質量的JPEG以優化雲端存儲容量
+      } catch (err) {
+        console.error("截圖失敗:", err);
+        return null;
+      }
+    }
+
+    async function saveDataSilently() {
       if (!window.currentDocKey) return;
 
       const className = document.getElementById('class-select').value;
@@ -744,6 +782,9 @@
           avg: document.getElementById(`self-avg-${i}`)?.textContent || '-'
         });
       }
+
+      // 自動產生當前頁面截圖 Base64
+      const screenshotData = await captureActivePageImage();
 
       const formData = {
         docKey: window.currentDocKey,
@@ -776,7 +817,11 @@
         updatedAt: new Date().toLocaleString()
       };
 
-      database.ref('worksheets/' + window.currentDocKey).set(formData);
+      if (screenshotData) {
+        formData.lastScreenshot = screenshotData;
+      }
+
+      database.ref('worksheets/' + window.currentDocKey).update(formData);
     }
 
     function fillFormData(data) {
@@ -1018,6 +1063,22 @@
       });
     }
 
+    // 下載學生畫面截圖
+    function downloadScreenshot(docKey, className, filename) {
+      const record = window.allAdminRecords.find(r => r.docKey === docKey);
+      if (!record || !record.lastScreenshot) {
+        alert('該組學生尚未產生畫面截圖（需請學生登入並執行暫存或換頁以觸發截圖）');
+        return;
+      }
+      
+      const link = document.createElement('a');
+      link.href = record.lastScreenshot;
+      link.download = `學習單截圖_${className}班_${filename}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
     // 根據班級篩選並渲染完整的學生解答卡片
     function filterAdminDisplay() {
       const selectedClass = document.getElementById('admin-class-filter').value;
@@ -1063,7 +1124,10 @@
           <div class="student-card">
             <div class="student-card-header">
               <h4>【${data.className} 班】組員：${memberStr}</h4>
-              <button class="btn-delete-single" onclick="deleteSingleStudent('${data.docKey}', '${data.className}', '${memberStr}')">🗑️ 刪除此筆資料</button>
+              <div class="action-btn-group">
+                <button class="btn-download-screenshot" onclick="downloadScreenshot('${data.docKey}', '${data.className}', '${data.members[0]?.name || '截圖'}')">📸 下載作答截圖</button>
+                <button class="btn-delete-single" onclick="deleteSingleStudent('${data.docKey}', '${data.className}', '${memberStr}')">🗑️ 刪除此筆資料</button>
+              </div>
             </div>
             
             <p><strong>🕒 最後更新時間：</strong>${data.updatedAt || '無'}</p>
