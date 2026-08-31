@@ -189,7 +189,7 @@
       <section>
         <h3>三、參考文獻資料</h3>
         <p>參考連結：<a href="https://hpt.thb.gov.tw/topicArticle/T004" target="_blank">交通部：保持安全距離觀念 (點此開啟原始網頁)</a></p>
-        <!-- 使用您上傳到 GitHub 的截圖 -->
+        <!-- 使用上傳到 GitHub 的截圖 -->
         <img src="traffic-info.png" alt="交通部保持安全距離觀念" class="preview-image">
       </section>
       <div class="btn-group">
@@ -261,7 +261,7 @@
           <tr><th>平均時間 (ms)</th><td id="exp-avg-a">-</td><td id="exp-avg-b">-</td></tr>
         </table>
         <button type="button" onclick="generateBarChart()" style="background-color: #17a2b8; margin-bottom: 15px;">📊 生成長條圖</button>
-        <div id="chart-container" class="chart-container"><canvas id="barChart" width="500" height="350"></canvas></div>
+        <div id="chart-container" class="chart-container"><canvas id="barChart" width="550" height="380"></canvas></div>
       </section>
       <section>
         <h3>八、實驗結論</h3>
@@ -323,7 +323,6 @@
       measurementId: "G-L785Y3SBFY"
     };
 
-    // 初始化 Firebase
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
     }
@@ -472,7 +471,6 @@
       document.getElementById(pageId).classList.add('active');
     }
 
-    // 從 Firebase 讀取/載入資料
     function loadOrStartCourse() {
       const className = document.getElementById('class-select').value;
       const count = document.getElementById('member-count').value;
@@ -493,7 +491,6 @@
 
       renderReactionTables();
 
-      // 從 Firebase Realtime Database 抓取歷史記錄
       database.ref('worksheets/' + docKey).once('value').then((snapshot) => {
         if (snapshot.exists()) {
           fillFormData(snapshot.val());
@@ -553,7 +550,6 @@
       alert('學習單已順利提交至 Firebase 雲端資料庫！');
     }
 
-    // 將資料即時寫入 Firebase
     function saveDataSilently() {
       if (!window.currentDocKey) return;
 
@@ -607,7 +603,6 @@
         updatedAt: new Date().toLocaleString()
       };
 
-      // Firebase set 寫入
       database.ref('worksheets/' + window.currentDocKey).set(formData);
     }
 
@@ -680,6 +675,7 @@
       document.getElementById('exp-avg-b').textContent = getAvg('exp-data-b');
     }
 
+    // 已修復的長條圖繪製函式（包含完整的 X/Y 軸、標題、刻度線與箭頭）
     function generateBarChart() {
       const valA = parseFloat(document.getElementById('exp-avg-a').textContent);
       const valB = parseFloat(document.getElementById('exp-avg-b').textContent);
@@ -700,37 +696,109 @@
 
       const width = canvas.width;
       const height = canvas.height;
-      const padding = 60;
+      const paddingLeft = 90;
+      const paddingBottom = 60;
+      const paddingTop = 50;
+      const paddingRight = 40;
 
+      const maxVal = Math.max(valA, valB, 100) * 1.25;
+      const chartHeight = height - paddingBottom - paddingTop;
+      const chartWidth = width - paddingLeft - paddingRight;
+
+      // 1. 繪製 X 軸與 Y 軸
       ctx.beginPath();
-      ctx.moveTo(padding, padding / 2);
-      ctx.lineTo(padding, height - padding);
-      ctx.lineTo(width - padding / 2, height - padding);
+      ctx.moveTo(paddingLeft, paddingTop);
+      ctx.lineTo(paddingLeft, height - paddingBottom);
+      ctx.lineTo(width - paddingRight, height - paddingBottom);
       ctx.strokeStyle = '#333';
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      const maxVal = Math.max(valA, valB, 100) * 1.2;
-      const chartHeight = height - padding * 1.5;
+      // 繪製 Y 軸箭頭
+      ctx.beginPath();
+      ctx.moveTo(paddingLeft - 5, paddingTop + 8);
+      ctx.lineTo(paddingLeft, paddingTop);
+      ctx.lineTo(paddingLeft + 5, paddingTop + 8);
+      ctx.fillStyle = '#333';
+      ctx.fill();
 
+      // 繪製 X 軸箭頭
+      ctx.beginPath();
+      ctx.moveTo(width - paddingRight - 8, height - paddingBottom - 5);
+      ctx.lineTo(width - paddingRight, height - paddingBottom);
+      ctx.lineTo(width - paddingRight - 8, height - paddingBottom + 5);
+      ctx.fill();
+
+      // 2. 繪製 Y 軸標題：時間 (毫秒)
+      ctx.save();
+      ctx.translate(25, (height - paddingBottom + paddingTop) / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.font = 'bold 14px Arial';
+      ctx.fillStyle = '#333';
+      ctx.textAlign = 'center';
+      ctx.fillText('時間 (毫秒)', 0, 0);
+      ctx.restore();
+
+      // 3. 繪製 X 軸標題：組別
+      ctx.font = 'bold 14px Arial';
+      ctx.fillStyle = '#333';
+      ctx.textAlign = 'center';
+      ctx.fillText('組別', paddingLeft + chartWidth / 2, height - 10);
+
+      // 4. 繪製 Y 軸刻度線與數值標籤
+      const stepCount = 4;
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      for (let i = 0; i <= stepCount; i++) {
+        const value = Math.round((maxVal / stepCount) * i);
+        const y = height - paddingBottom - (chartHeight / stepCount) * i;
+
+        // 刻度小線段
+        ctx.beginPath();
+        ctx.moveTo(paddingLeft - 5, y);
+        ctx.lineTo(paddingLeft, y);
+        ctx.strokeStyle = '#333';
+        ctx.stroke();
+
+        // 刻度數字
+        ctx.fillStyle = '#666';
+        ctx.fillText(value, paddingLeft - 10, y);
+
+        // 背景灰網格線 (排除底線)
+        if (i > 0) {
+          ctx.beginPath();
+          ctx.moveTo(paddingLeft, y);
+          ctx.lineTo(width - paddingRight, y);
+          ctx.strokeStyle = '#eee';
+          ctx.stroke();
+        }
+      }
+
+      // 5. 繪製長條圖與文字數據
       const barWidth = 60;
-      const xA = padding + 80;
-      const xB = padding + 240;
+      const xA = paddingLeft + chartWidth * 0.25 - barWidth / 2;
+      const xB = paddingLeft + chartWidth * 0.75 - barWidth / 2;
 
       const hA = (valA / maxVal) * chartHeight;
       const hB = (valB / maxVal) * chartHeight;
 
+      // 藍色長條：實驗組
       ctx.fillStyle = '#007bff';
-      ctx.fillRect(xA, height - padding - hA, barWidth, hA);
+      ctx.fillRect(xA, height - paddingBottom - hA, barWidth, hA);
       ctx.fillStyle = '#333';
-      ctx.fillText(`${valA} ms`, xA + 5, height - padding - hA - 8);
-      ctx.fillText(descA, xA - 10, height - padding + 20);
+      ctx.font = 'bold 13px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(`${valA} ms`, xA + barWidth / 2, height - paddingBottom - hA - 10);
+      ctx.fillText(descA, xA + barWidth / 2, height - paddingBottom + 20);
 
+      // 綠色長條：對照組
       ctx.fillStyle = '#28a745';
-      ctx.fillRect(xB, height - padding - hB, barWidth, hB);
+      ctx.fillRect(xB, height - paddingBottom - hB, barWidth, hB);
       ctx.fillStyle = '#333';
-      ctx.fillText(`${valB} ms`, xB + 5, height - padding - hB - 8);
-      ctx.fillText(descB, xB - 10, height - padding + 20);
+      ctx.font = 'bold 13px Arial';
+      ctx.fillText(`${valB} ms`, xB + barWidth / 2, height - paddingBottom - hB - 10);
+      ctx.fillText(descB, xB + barWidth / 2, height - paddingBottom + 20);
     }
 
     function showAdminLogin() {
@@ -743,7 +811,6 @@
       }
     }
 
-    // 教師後台：即時讀取全班 Firebase 雲端資料
     function loadAdminDataFromFirebase() {
       const listContainer = document.getElementById('admin-data-list');
       listContainer.innerHTML = '載入雲端資料中...';
