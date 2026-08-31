@@ -8,8 +8,6 @@
   <!-- 載入 Firebase 8.x SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-  <!-- 載入 html2canvas 網頁截圖套件 -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
   <style>
     :root {
@@ -125,6 +123,7 @@
     .admin-nav { position: absolute; top: 20px; right: 20px; }
     .admin-nav button { width: auto; background: #6c757d; padding: 6px 12px; font-size: 14px; }
     
+    /* 後台管理介面樣式 */
     .admin-filter-bar {
       display: flex;
       gap: 15px;
@@ -156,21 +155,6 @@
       margin-bottom: 12px;
     }
     .student-card h4 { text-align: left; margin: 0; color: #007bff; }
-    
-    .action-btn-group { display: flex; gap: 8px; }
-
-    .btn-download-screenshot {
-      background-color: #28a745;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      font-size: 13px;
-      border-radius: 4px;
-      cursor: pointer;
-      width: auto;
-    }
-    .btn-download-screenshot:hover { background-color: #218838; }
-
     .btn-delete-single {
       background-color: #dc3545;
       color: white;
@@ -205,8 +189,8 @@
 </head>
 <body>
 
-  <div class="container" id="worksheet-container">
-    <div class="admin-nav" data-html2canvas-ignore="true">
+  <div class="container">
+    <div class="admin-nav">
       <button onclick="showAdminLogin()">教師後台</button>
     </div>
 
@@ -268,7 +252,7 @@
           <textarea id="q-problem" placeholder="請填寫你的想法（必填）..."></textarea>
         </div>
       </section>
-      <div class="btn-group" data-html2canvas-ignore="true">
+      <div class="btn-group">
         <button class="btn-save-draft" onclick="manualSaveDraft()">💾 暫存目前進度</button>
         <button onclick="goToStep2()">下一頁：參考文獻資料 &rarr;</button>
       </div>
@@ -282,7 +266,7 @@
         <p>參考連結：<a href="https://hpt.thb.gov.tw/topicArticle/T004" target="_blank">交通部：保持安全距離觀念 (點此開啟原始網頁)</a></p>
         <img src="traffic-info.png" alt="交通部保持安全距離觀念" class="preview-image">
       </section>
-      <div class="btn-group" data-html2canvas-ignore="true">
+      <div class="btn-group">
         <button class="btn-secondary" onclick="showPage('page-step1')">&larr; 上一頁</button>
         <button class="btn-save-draft" onclick="manualSaveDraft()">💾 暫存目前進度</button>
         <button onclick="showPage('page-step3')">請聽老師指示才前往下一頁 &rarr;</button>
@@ -302,7 +286,7 @@
           <input type="text" id="q-factors" style="width:100%" placeholder="例如：精神狀況、燈光、測驗設備..." onchange="updateFactorsPreview()">
         </div>
       </section>
-      <div class="btn-group" data-html2canvas-ignore="true">
+      <div class="btn-group">
         <button class="btn-secondary" onclick="showPage('page-step2')">&larr; 上一頁</button>
         <button class="btn-save-draft" onclick="manualSaveDraft()">💾 暫存目前進度</button>
         <button onclick="goToStep4()">下一頁：提出假說 &rarr;</button>
@@ -315,6 +299,7 @@
       <section>
         <h3>四、提出假說</h3>
         
+        <!-- 自動顯示前一頁填寫的因素 -->
         <div class="info-box">
           📌 <strong>你在上頁填寫影響反應時間的因素為：</strong><br>
           <span id="display-q-factors" style="font-weight:bold; color:#0056b3;">（尚未填寫）</span>
@@ -336,7 +321,7 @@
           <tr><td>控制變因</td><td><textarea id="exp-control"></textarea></td></tr>
         </table>
         
-        <div id="check-container-sec5" data-html2canvas-ignore="true">
+        <div id="check-container-sec5">
           <button type="button" class="btn-teacher-check" onclick="teacherVerify('sec5')">🔒 教師確認（變因設計）</button>
         </div>
       </section>
@@ -344,9 +329,9 @@
       <section>
         <h3>六、設計實驗步驟</h3>
         <div id="steps-container"></div>
-        <button type="button" class="btn-add-step" onclick="addStepInput()" data-html2canvas-ignore="true">+ 新增步驟</button>
+        <button type="button" class="btn-add-step" onclick="addStepInput()">+ 新增步驟</button>
         <br><br>
-        <div id="check-container-sec6" data-html2canvas-ignore="true">
+        <div id="check-container-sec6">
           <button type="button" class="btn-teacher-check" onclick="teacherVerify('sec6')">🔒 教師確認（實驗步驟）</button>
         </div>
       </section>
@@ -373,7 +358,7 @@
           <tr><td>第 5 次</td><td><input type="number" class="exp-data-a" style="width:100%" onchange="calcExpAvg()"></td><td><input type="number" class="exp-data-b" style="width:100%" onchange="calcExpAvg()"></td></tr>
           <tr><th>平均時間 (ms)</th><td id="exp-avg-a">-</td><td id="exp-avg-b">-</td></tr>
         </table>
-        <button type="button" onclick="generateBarChart()" style="background-color: #17a2b8; margin-bottom: 15px;" data-html2canvas-ignore="true">📊 生成長條圖</button>
+        <button type="button" onclick="generateBarChart()" style="background-color: #17a2b8; margin-bottom: 15px;">📊 生成長條圖</button>
         <div id="chart-container" class="chart-container"><canvas id="barChart" width="550" height="380"></canvas></div>
       </section>
 
@@ -384,7 +369,7 @@
           <textarea id="exp-conclusion"></textarea>
         </div>
       </section>
-      <div class="btn-group" data-html2canvas-ignore="true">
+      <div class="btn-group">
         <button class="btn-secondary" onclick="showPage('page-step3')">&larr; 上一頁</button>
         <button class="btn-save-draft" onclick="manualSaveDraft()">💾 暫存目前進度</button>
         <button onclick="goToStep5()">下一頁：研討與改進 &rarr;</button>
@@ -409,7 +394,7 @@
           <textarea id="disc-interesting"></textarea>
         </div>
       </section>
-      <div class="btn-group" data-html2canvas-ignore="true">
+      <div class="btn-group">
         <button class="btn-secondary" onclick="showPage('page-step4')">&larr; 上一頁</button>
         <button class="btn-save-draft" onclick="manualSaveDraft()">💾 暫存目前進度</button>
         <button onclick="saveData()">完成並提交學習單</button>
@@ -417,7 +402,7 @@
     </div>
 
     <!-- 教師後台 -->
-    <div id="page-admin" class="page" data-html2canvas-ignore="true">
+    <div id="page-admin" class="page">
       <h2>教師後台管理 (Firebase 雲端同步)</h2>
       
       <div class="admin-filter-bar">
@@ -469,6 +454,7 @@
     }
     const database = firebase.database();
 
+    // 審核狀態變數
     let teacherCheckedSec5 = false;
     let teacherCheckedSec6 = false;
 
@@ -570,7 +556,7 @@
         div.innerHTML = `
           <span class="step-label">步驟 ${idx + 1}：</span>
           <input type="text" class="step-input" value="${text}">
-          <button type="button" class="btn-del-step" onclick="removeStepInput(this)" data-html2canvas-ignore="true">刪除</button>
+          <button type="button" class="btn-del-step" onclick="removeStepInput(this)">刪除</button>
         `;
         container.appendChild(div);
       });
@@ -585,7 +571,7 @@
       div.innerHTML = `
         <span class="step-label">步驟 ${count + 1}：</span>
         <input type="text" class="step-input">
-        <button type="button" class="btn-del-step" onclick="removeStepInput(this)" data-html2canvas-ignore="true">刪除</button>
+        <button type="button" class="btn-del-step" onclick="removeStepInput(this)">刪除</button>
       `;
       container.appendChild(div);
     }
@@ -621,7 +607,6 @@
       if(pageId === 'page-step4') {
         updateFactorsPreview();
       }
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function loadOrStartCourse() {
@@ -658,6 +643,7 @@
       });
     }
 
+    // 教師驗證機制（審核通過時呈現對應區塊與連結）
     function teacherVerify(secKey) {
       const pwd = prompt("請請教師輸入審核密碼：");
       if (pwd === "bio1234") {
@@ -681,18 +667,19 @@
       }
     }
 
-    async function manualSaveDraft() {
-      await saveDataSilently();
-      alert("✅ 已成功暫存目前填寫的進度與各頁畫面至雲端！");
+    // 手動暫存進度（不強制欄位檢查）
+    function manualSaveDraft() {
+      saveDataSilently();
+      alert("✅ 已成功暫存目前填寫的進度至雲端！下次登入可繼續作答。");
     }
 
-    async function goToStep2() {
+    function goToStep2() {
       if (!validateInputs(['q-problem'], '請填寫【二、提出問題】的答案！')) return;
-      await saveDataSilently();
+      saveDataSilently();
       showPage('page-step2');
     }
 
-    async function goToStep4() {
+    function goToStep4() {
       const count = parseInt(document.getElementById('member-count').value) || 1;
       let checkList = ['q-factors'];
       for (let i = 1; i <= count; i++) {
@@ -703,11 +690,11 @@
         }
       }
       if (!validateInputs(checkList, '請完整記錄測試數據！')) return;
-      await saveDataSilently();
+      saveDataSilently();
       showPage('page-step4');
     }
 
-    async function goToStep5() {
+    function goToStep5() {
       let checkList = [
         'hypo-factor', 'hypo-groupA', 'hypo-groupB',
         'exp-group-a', 'exp-group-b', 'exp-variable', 'exp-control',
@@ -719,69 +706,19 @@
 
       if (!validateInputs(checkList, '階段四欄位均為必填！')) return;
 
-      await saveDataSilently();
+      saveDataSilently();
       showPage('page-step5');
     }
 
-    async function saveData() {
+    function saveData() {
       const checkList = ['disc-improvement', 'disc-new-questions', 'disc-interesting'];
       if (!validateInputs(checkList, '請完整填寫研討與改進後再提交！')) return;
 
-      await saveDataSilently();
+      saveDataSilently();
       alert('學習單已順利提交至 Firebase 雲端資料庫！');
     }
 
-    // 使用「完全隱形容器」方式拍照，徹底消除畫面閃爍或亂跳
-    async function captureAllPagesImages() {
-      const pages = ['page-step1', 'page-step2', 'page-step3', 'page-step4', 'page-step5'];
-      let screenshots = {};
-
-      const hiddenWrapper = document.createElement('div');
-      hiddenWrapper.style.position = 'absolute';
-      hiddenWrapper.style.top = '-9999px';
-      hiddenWrapper.style.left = '-9999px';
-      hiddenWrapper.style.width = '900px';
-      hiddenWrapper.style.overflow = 'hidden';
-      document.body.appendChild(hiddenWrapper);
-
-      for (let pageId of pages) {
-        const sourcePage = document.getElementById(pageId);
-        if (!sourcePage) continue;
-
-        const clone = sourcePage.cloneNode(true);
-        clone.style.display = 'block';
-        
-        // 複製表單即時輸入值
-        const origInputs = sourcePage.querySelectorAll('input, select, textarea');
-        const cloneInputs = clone.querySelectorAll('input, select, textarea');
-        origInputs.forEach((orig, i) => {
-          if (cloneInputs[i]) {
-            cloneInputs[i].value = orig.value;
-          }
-        });
-
-        hiddenWrapper.appendChild(clone);
-
-        try {
-          const canvas = await html2canvas(clone, {
-            scale: 1.5,
-            useCORS: true,
-            logging: false,
-            width: 900
-          });
-          screenshots[pageId] = canvas.toDataURL('image/jpeg', 0.6);
-        } catch (err) {
-          console.error(`截圖 ${pageId} 失敗:`, err);
-        }
-
-        hiddenWrapper.removeChild(clone);
-      }
-
-      document.body.removeChild(hiddenWrapper);
-      return screenshots;
-    }
-
-    async function saveDataSilently() {
+    function saveDataSilently() {
       if (!window.currentDocKey) return;
 
       const className = document.getElementById('class-select').value;
@@ -807,9 +744,6 @@
           avg: document.getElementById(`self-avg-${i}`)?.textContent || '-'
         });
       }
-
-      // 產生全頁面截圖（畫面零跳動）
-      const pageScreenshots = await captureAllPagesImages();
 
       const formData = {
         docKey: window.currentDocKey,
@@ -842,11 +776,7 @@
         updatedAt: new Date().toLocaleString()
       };
 
-      if (Object.keys(pageScreenshots).length > 0) {
-        formData.allScreenshots = pageScreenshots;
-      }
-
-      await database.ref('worksheets/' + window.currentDocKey).update(formData);
+      database.ref('worksheets/' + window.currentDocKey).set(formData);
     }
 
     function fillFormData(data) {
@@ -1051,6 +981,7 @@
       ctx.fillText(descB, xB + barWidth / 2, height - paddingBottom + 20);
     }
 
+    // 教師後台登入密碼 bio1234
     function showAdminLogin() {
       const pwd = prompt('請輸入教師後台密碼：');
       if (pwd === 'bio1234') {
@@ -1061,6 +992,7 @@
       }
     }
 
+    // 載入全班 Firebase 雲端資料
     function loadAdminDataFromFirebase() {
       const listContainer = document.getElementById('admin-data-list');
       listContainer.innerHTML = '載入雲端資料中...';
@@ -1086,34 +1018,7 @@
       });
     }
 
-    async function downloadAllScreenshots(docKey, className, filename) {
-      const record = window.allAdminRecords.find(r => r.docKey === docKey);
-      if (!record || !record.allScreenshots || Object.keys(record.allScreenshots).length === 0) {
-        alert('該組學生尚未產生全頁面截圖（需請學生登入並點擊暫存或換頁）');
-        return;
-      }
-      
-      const pageNames = {
-        'page-step1': '頁面1_問題觀察',
-        'page-step2': '頁面2_參考資料',
-        'page-step3': '頁面3_反應時間測試',
-        'page-step4': '頁面4_假說與實驗設計',
-        'page-step5': '頁面5_研討與改進'
-      };
-
-      for (let key in record.allScreenshots) {
-        const link = document.createElement('a');
-        link.href = record.allScreenshots[key];
-        const pageLabel = pageNames[key] || key;
-        link.download = `學習單_${className}班_${filename}_${pageLabel}.jpg`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        await new Promise(res => setTimeout(res, 300));
-      }
-    }
-
+    // 根據班級篩選並渲染完整的學生解答卡片
     function filterAdminDisplay() {
       const selectedClass = document.getElementById('admin-class-filter').value;
       const listContainer = document.getElementById('admin-data-list');
@@ -1158,10 +1063,7 @@
           <div class="student-card">
             <div class="student-card-header">
               <h4>【${data.className} 班】組員：${memberStr}</h4>
-              <div class="action-btn-group">
-                <button class="btn-download-screenshot" onclick="downloadAllScreenshots('${data.docKey}', '${data.className}', '${data.members[0]?.name || '學生'}')">📸 下載全部作答截圖 (1~5頁)</button>
-                <button class="btn-delete-single" onclick="deleteSingleStudent('${data.docKey}', '${data.className}', '${memberStr}')">🗑️ 刪除此筆資料</button>
-              </div>
+              <button class="btn-delete-single" onclick="deleteSingleStudent('${data.docKey}', '${data.className}', '${memberStr}')">🗑️ 刪除此筆資料</button>
             </div>
             
             <p><strong>🕒 最後更新時間：</strong>${data.updatedAt || '無'}</p>
@@ -1212,6 +1114,7 @@
       listContainer.innerHTML = html;
     }
 
+    // 刪除個別學生資料
     function deleteSingleStudent(docKey, className, memberStr) {
       if (confirm(`確定要刪除【${className}班 - ${memberStr}】的這筆學習單資料嗎？\n刪除後無法恢復！`)) {
         database.ref('worksheets/' + docKey).remove().then(() => {
@@ -1223,6 +1126,7 @@
       }
     }
 
+    // 兩階段一鍵清除全庫資料
     function deleteAllDataTwoStage() {
       const firstConfirm = prompt('⚠️ 警告：這將會【永久刪除所有學生的學習單紀錄】！\n若確定要清空資料庫（用於新學期/新班級），請在下方輸入驗證碼：DELETE');
       
@@ -1240,6 +1144,7 @@
       }
     }
 
+    // 匯出 CSV 檔
     function exportCSV() {
       const selectedClass = document.getElementById('admin-class-filter').value;
       const allRecords = window.allAdminRecords || [];
