@@ -621,6 +621,7 @@
       if(pageId === 'page-step4') {
         updateFactorsPreview();
       }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function loadOrStartCourse() {
@@ -730,56 +731,53 @@
       alert('學習單已順利提交至 Firebase 雲端資料庫！');
     }
 
-    // 依序在背景無痕繪製 Page 1 ~ Page 5 的獨立截圖
+    // 使用「完全隱形容器」方式拍照，徹底消除畫面閃爍或亂跳
     async function captureAllPagesImages() {
       const pages = ['page-step1', 'page-step2', 'page-step3', 'page-step4', 'page-step5'];
-      
-      const activePage = document.querySelector('.page.active');
-      const activeId = activePage ? activePage.id : 'page-step1';
-      
       let screenshots = {};
 
-      pages.forEach(id => {
-        const p = document.getElementById(id);
-        if (p) p.style.display = 'none';
-      });
+      const hiddenWrapper = document.createElement('div');
+      hiddenWrapper.style.position = 'absolute';
+      hiddenWrapper.style.top = '-9999px';
+      hiddenWrapper.style.left = '-9999px';
+      hiddenWrapper.style.width = '900px';
+      hiddenWrapper.style.overflow = 'hidden';
+      document.body.appendChild(hiddenWrapper);
 
       for (let pageId of pages) {
-        const targetPage = document.getElementById(pageId);
-        if (!targetPage) continue;
+        const sourcePage = document.getElementById(pageId);
+        if (!sourcePage) continue;
+
+        const clone = sourcePage.cloneNode(true);
+        clone.style.display = 'block';
         
-        targetPage.style.display = 'block';
-        targetPage.classList.add('active');
+        // 複製表單即時輸入值
+        const origInputs = sourcePage.querySelectorAll('input, select, textarea');
+        const cloneInputs = clone.querySelectorAll('input, select, textarea');
+        origInputs.forEach((orig, i) => {
+          if (cloneInputs[i]) {
+            cloneInputs[i].value = orig.value;
+          }
+        });
+
+        hiddenWrapper.appendChild(clone);
 
         try {
-          const canvas = await html2canvas(targetPage, {
+          const canvas = await html2canvas(clone, {
             scale: 1.5,
             useCORS: true,
             logging: false,
-            windowWidth: 900
+            width: 900
           });
           screenshots[pageId] = canvas.toDataURL('image/jpeg', 0.6);
         } catch (err) {
           console.error(`截圖 ${pageId} 失敗:`, err);
         }
 
-        targetPage.style.display = 'none';
-        targetPage.classList.remove('active');
+        hiddenWrapper.removeChild(clone);
       }
 
-      pages.forEach(id => {
-        const p = document.getElementById(id);
-        if (p) {
-          p.style.display = '';
-          p.classList.remove('active');
-        }
-      });
-      
-      const current = document.getElementById(activeId);
-      if (current) {
-        current.classList.add('active');
-      }
-
+      document.body.removeChild(hiddenWrapper);
       return screenshots;
     }
 
@@ -810,7 +808,7 @@
         });
       }
 
-      // 自動背景產生頁面 1~5 獨立截圖
+      // 產生全頁面截圖（畫面零跳動）
       const pageScreenshots = await captureAllPagesImages();
 
       const formData = {
