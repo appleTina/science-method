@@ -15,6 +15,7 @@
       --bg-color: #f8f9fa;
       --card-bg: #ffffff;
       --danger-color: #dc3545;
+      --success-color: #28a745;
     }
     body {
       font-family: Arial, "Microsoft JhengHei", sans-serif;
@@ -70,7 +71,7 @@
     .input-seat { width: 90px; }
     .input-name { flex: 1; }
     
-    .btn-group { display: flex; gap: 15px; margin-top: 20px; }
+    .btn-group { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
     button {
       background-color: var(--primary-color);
       color: white;
@@ -79,12 +80,28 @@
       font-size: 16px;
       border-radius: 6px;
       cursor: pointer;
-      width: 100%;
+      flex: 1;
+      min-width: 140px;
     }
     button:hover { background-color: #0056b3; }
     button.btn-secondary { background-color: #6c757d; }
     button.btn-secondary:hover { background-color: #5a6268; }
+    button.btn-save-draft { background-color: #17a2b8; }
+    button.btn-save-draft:hover { background-color: #138496; }
+    button.btn-teacher-check { background-color: #ffc107; color: #212529; font-weight: bold; }
+    button.btn-teacher-check:hover { background-color: #e0a800; }
     
+    .teacher-approved-badge {
+      display: inline-block;
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      padding: 8px 15px;
+      border-radius: 6px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
     .video-container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin: 20px 0; }
     .video-box { flex: 1 1 400px; aspect-ratio: 16 / 9; }
     iframe { width: 100%; height: 100%; border-radius: 8px; border: 1px solid #ddd; }
@@ -140,7 +157,6 @@
       cursor: pointer;
       width: auto;
     }
-    .btn-delete-single:hover { background-color: #bd2130; }
 
     .detail-section { margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 6px; }
     .detail-section h5 { margin: 5px 0 10px 0; color: #495057; border-left: 4px solid #17a2b8; padding-left: 8px; }
@@ -228,7 +244,10 @@
           <textarea id="q-problem" placeholder="請填寫你的想法（必填）..."></textarea>
         </div>
       </section>
-      <button onclick="goToStep2()">下一頁：參考文獻資料 &rarr;</button>
+      <div class="btn-group">
+        <button class="btn-save-draft" onclick="manualSaveDraft()">💾 暫存目前進度</button>
+        <button onclick="goToStep2()">下一頁：參考文獻資料 &rarr;</button>
+      </div>
     </div>
 
     <!-- 階段二 -->
@@ -241,6 +260,7 @@
       </section>
       <div class="btn-group">
         <button class="btn-secondary" onclick="showPage('page-step1')">&larr; 上一頁</button>
+        <button class="btn-save-draft" onclick="manualSaveDraft()">💾 暫存目前進度</button>
         <button onclick="showPage('page-step3')">請聽老師指示才前往下一頁 &rarr;</button>
       </div>
     </div>
@@ -255,11 +275,12 @@
         <div id="reaction-tables-container"></div>
         <div class="form-group">
           <label><span style="color:red;">*</span> 哪些因素會造成遊戲反應時間的快慢？（至少3個）</label>
-          <input type="text" id="q-factors" style="width:100%" placeholder="例如：精神狀況、燈光、測驗設備...">
+          <input type="text" id="q-factors" style="width:100%" placeholder="例如：精神狀況、燈光、測驗設備..." onchange="updateFactorsPreview()">
         </div>
       </section>
       <div class="btn-group">
         <button class="btn-secondary" onclick="showPage('page-step2')">&larr; 上一頁</button>
+        <button class="btn-save-draft" onclick="manualSaveDraft()">💾 暫存目前進度</button>
         <button onclick="goToStep4()">下一頁：提出假說 &rarr;</button>
       </div>
     </div>
@@ -269,8 +290,20 @@
       <h2>探究自然的方法（階段四）</h2>
       <section>
         <h3>四、提出假說</h3>
+        
+        <!-- 自動顯示前一頁填寫的因素 -->
+        <div class="info-box">
+          📌 <strong>你在上頁填寫影響反應時間的因素為：</strong><br>
+          <span id="display-q-factors" style="font-weight:bold; color:#0056b3;">（尚未填寫）</span>
+        </div>
+
+        <p style="font-weight: bold; color: #d9534f; margin-bottom: 12px;">
+          💡 請從自己想到的因素裡，選擇一個可以進行實驗的因素（變因）來做實驗：
+        </p>
+
         <p>我覺得 <input type="text" id="hypo-factor" style="width: 150px;"> 會影響遊戲反應時間，<input type="text" id="hypo-groupA" style="width: 150px;"> 反應通常比 <input type="text" id="hypo-groupB" style="width: 150px;"> 快。</p>
       </section>
+      
       <section>
         <h3>五、設計與進行實驗</h3>
         <table>
@@ -279,12 +312,22 @@
           <tr><td>應變變因</td><td><input type="text" id="exp-variable" value="遊戲反應時間" style="width:80%"></td></tr>
           <tr><td>控制變因</td><td><textarea id="exp-control"></textarea></td></tr>
         </table>
+        
+        <div id="check-container-sec5">
+          <button type="button" class="btn-teacher-check" onclick="teacherVerify('sec5')">🔒 教師確認（變因設計）</button>
+        </div>
       </section>
+
       <section>
         <h3>六、設計實驗步驟</h3>
         <div id="steps-container"></div>
         <button type="button" class="btn-add-step" onclick="addStepInput()">+ 新增步驟</button>
+        <br><br>
+        <div id="check-container-sec6">
+          <button type="button" class="btn-teacher-check" onclick="teacherVerify('sec6')">🔒 教師確認（實驗步驟）</button>
+        </div>
       </section>
+
       <section>
         <h3>七、紀錄實驗結果與分析</h3>
         <p>紀錄項目：<input type="text" id="record-item" placeholder="如：遊戲反應時間(ms)" style="width:60%"></p>
@@ -310,6 +353,7 @@
         <button type="button" onclick="generateBarChart()" style="background-color: #17a2b8; margin-bottom: 15px;">📊 生成長條圖</button>
         <div id="chart-container" class="chart-container"><canvas id="barChart" width="550" height="380"></canvas></div>
       </section>
+
       <section>
         <h3>八、實驗結論</h3>
         <div class="form-group">
@@ -319,6 +363,7 @@
       </section>
       <div class="btn-group">
         <button class="btn-secondary" onclick="showPage('page-step3')">&larr; 上一頁</button>
+        <button class="btn-save-draft" onclick="manualSaveDraft()">💾 暫存目前進度</button>
         <button onclick="goToStep5()">下一頁：研討與改進 &rarr;</button>
       </div>
     </div>
@@ -343,7 +388,8 @@
       </section>
       <div class="btn-group">
         <button class="btn-secondary" onclick="showPage('page-step4')">&larr; 上一頁</button>
-        <button onclick="saveData()">儲存 / 提交學習單 (至 Firebase)</button>
+        <button class="btn-save-draft" onclick="manualSaveDraft()">💾 暫存目前進度</button>
+        <button onclick="saveData()">完成並提交學習單</button>
       </div>
     </div>
 
@@ -399,6 +445,10 @@
       firebase.initializeApp(firebaseConfig);
     }
     const database = firebase.database();
+
+    // 審核狀態變數
+    let teacherCheckedSec5 = false;
+    let teacherCheckedSec6 = false;
 
     function clearErrors() {
       document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
@@ -538,9 +588,17 @@
       return Array.from(document.querySelectorAll('#steps-container .step-input')).map(input => input.value);
     }
 
+    function updateFactorsPreview() {
+      const val = document.getElementById('q-factors').value.trim();
+      document.getElementById('display-q-factors').textContent = val ? val : '（尚未填寫）';
+    }
+
     function showPage(pageId) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById(pageId).classList.add('active');
+      if(pageId === 'page-step4') {
+        updateFactorsPreview();
+      }
     }
 
     function loadOrStartCourse() {
@@ -575,6 +633,30 @@
         console.error("Firebase 載入失敗:", err);
         showPage('page-step1');
       });
+    }
+
+    // 教師驗證機制
+    function teacherVerify(secKey) {
+      const pwd = prompt("請請教師輸入審核密碼：");
+      if (pwd === "bio1234") {
+        if (secKey === 'sec5') {
+          teacherCheckedSec5 = true;
+          document.getElementById('check-container-sec5').innerHTML = '<span class="teacher-approved-badge">✅ 教師已確認審核（五、設計變因）</span>';
+        } else if (secKey === 'sec6') {
+          teacherCheckedSec6 = true;
+          document.getElementById('check-container-sec6').innerHTML = '<span class="teacher-approved-badge">✅ 教師已確認審核（六、實驗步驟）</span>';
+        }
+        saveDataSilently();
+        alert("驗證成功！已記錄教師審核標籤。");
+      } else if (pwd !== null) {
+        alert("密碼錯誤，請重新試試！");
+      }
+    }
+
+    // 手動暫存進度（不強制欄位檢查）
+    function manualSaveDraft() {
+      saveDataSilently();
+      alert("✅ 已成功暫存目前填寫的進度至雲端！下次登入可繼續作答。");
     }
 
     function goToStep2() {
@@ -663,7 +745,9 @@
         expGroupB: document.getElementById('exp-group-b').value,
         expVariable: document.getElementById('exp-variable').value,
         expControl: document.getElementById('exp-control').value,
+        teacherCheckedSec5: teacherCheckedSec5,
         stepsData: getStepsData(),
+        teacherCheckedSec6: teacherCheckedSec6,
         recordItem: document.getElementById('record-item').value,
         descExpGroup: document.getElementById('desc-exp-group').value,
         descCtrlGroup: document.getElementById('desc-ctrl-group').value,
@@ -701,6 +785,8 @@
       }
 
       document.getElementById('q-factors').value = data.factors || '';
+      updateFactorsPreview();
+
       document.getElementById('hypo-factor').value = data.hypoFactor || '';
       document.getElementById('hypo-groupA').value = data.hypoGroupA || '';
       document.getElementById('hypo-groupB').value = data.hypoGroupB || '';
@@ -709,7 +795,17 @@
       document.getElementById('exp-variable').value = data.expVariable || '';
       document.getElementById('exp-control').value = data.expControl || '';
 
+      if (data.teacherCheckedSec5) {
+        teacherCheckedSec5 = true;
+        document.getElementById('check-container-sec5').innerHTML = '<span class="teacher-approved-badge">✅ 教師已確認審核（五、設計變因）</span>';
+      }
+
       renderStepInputs(data.stepsData || ['', '']);
+
+      if (data.teacherCheckedSec6) {
+        teacherCheckedSec6 = true;
+        document.getElementById('check-container-sec6').innerHTML = '<span class="teacher-approved-badge">✅ 教師已確認審核（六、實驗步驟）</span>';
+      }
 
       document.getElementById('record-item').value = data.recordItem || '';
       document.getElementById('desc-exp-group').value = data.descExpGroup || '';
@@ -940,6 +1036,9 @@
         const dataAStr = data.expDataA ? data.expDataA.join(', ') : '-';
         const dataBStr = data.expDataB ? data.expDataB.join(', ') : '-';
 
+        const sec5CheckBadge = data.teacherCheckedSec5 ? '<span style="color:#28a745; font-weight:bold;">[✅ 已通過審核]</span>' : '<span style="color:#dc3545;">[❌ 未確認]</span>';
+        const sec6CheckBadge = data.teacherCheckedSec6 ? '<span style="color:#28a745; font-weight:bold;">[✅ 已通過審核]</span>' : '<span style="color:#dc3545;">[❌ 未確認]</span>';
+
         html += `
           <div class="student-card">
             <div class="student-card-header">
@@ -961,7 +1060,7 @@
             </div>
 
             <div class="detail-section">
-              <h5>四與五、假說與變因設計</h5>
+              <h5>四與五、假說與變因設計 ${sec5CheckBadge}</h5>
               <p><strong>假說設定：</strong>覺得【${data.hypoFactor || ''}】會影響反應時間，【${data.hypoGroupA || ''}】反應通常比【${data.hypoGroupB || ''}】快。</p>
               <p><strong>操作變因：</strong>實驗組：${data.expGroupA || '未填'} | 對照組：${data.expGroupB || '未填'}</p>
               <p><strong>應變變因：</strong>${data.expVariable || '未填'}</p>
@@ -969,7 +1068,7 @@
             </div>
 
             <div class="detail-section">
-              <h5>六與七、步驟與實驗數據記錄</h5>
+              <h5>六與七、步驟與實驗數據記錄 ${sec6CheckBadge}</h5>
               <p><strong>實驗步驟：</strong></p>
               ${stepsHTML}
               <p><strong>記錄項目：</strong>${data.recordItem || '未填'}</p>
@@ -1039,7 +1138,7 @@
         return;
       }
 
-      let csvContent = "\uFEFF班級,組員資料,車禍原因思考,反應時間影響因素,假說(因素),假說(組A),假說(組B),操作變因(實驗組),操作變因(對照組),控制變因,實驗步驟,實驗組描述,實驗組數據,實驗組平均,對照組描述,對照組數據,對照組平均,實驗結論,改進之處,新問題,有趣之處,更新時間\n";
+      let csvContent = "\uFEFF班級,組員資料,車禍原因思考,反應時間影響因素,假說(因素),假說(組A),假說(組B),操作變因(實驗組),操作變因(對照組),控制變因,教師審核(變因),實驗步驟,教師審核(步驟),實驗組描述,實驗組數據,實驗組平均,對照組描述,對照組數據,對照組平均,實驗結論,改進之處,新問題,有趣之處,更新時間\n";
       
       filtered.forEach(r => {
         const memberStr = r.members ? r.members.map(m => `${m.seat}號${m.name}`).join(';') : '';
@@ -1058,7 +1157,9 @@
           `"${(r.expGroupA || '').replace(/"/g, '""')}"`,
           `"${(r.expGroupB || '').replace(/"/g, '""')}"`,
           `"${(r.expControl || '').replace(/"/g, '""')}"`,
+          r.teacherCheckedSec5 ? "已通過" : "未審核",
           `"${stepsStr.replace(/"/g, '""')}"`,
+          r.teacherCheckedSec6 ? "已通過" : "未審核",
           `"${(r.descExpGroup || '').replace(/"/g, '""')}"`,
           `"${dataAStr}"`,
           r.expAvgA || '',
