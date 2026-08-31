@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>探究自然的方法 - 線上學習單</title>
+  <title>探究自然的方法 - 線上學習單 (Firebase 雲端版)</title>
   
   <!-- 載入 Firebase 8.x SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -172,7 +172,7 @@
 
     <!-- 首頁：登入頁 -->
     <div id="page-home" class="page active">
-      <h1>探究自然的方法</h1>
+      <h1>探究自然的方法 (雲端版)</h1>
       
       <div class="form-group">
         <label for="class-select"><span style="color:red;">*</span> 選擇班級：</label>
@@ -207,12 +207,12 @@
 
       <div id="members-container"></div>
 
-      <button onclick="loadOrStartCourse()">進入課程</button>
+      <button onclick="loadOrStartCourse()">進入課程 (雲端載入)</button>
     </div>
 
     <!-- 階段一 -->
     <div id="page-step1" class="page">
-      <h2>探究自然的方法</h2>
+      <h2>探究自然的方法（階段一）</h2>
       <section>
         <h3>一、觀察</h3>
         <p>請觀看以下兩部交通事故相關影片：</p>
@@ -233,7 +233,7 @@
 
     <!-- 階段二 -->
     <div id="page-step2" class="page">
-      <h2>探究自然的方法</h2>
+      <h2>探究自然的方法（階段二）</h2>
       <section>
         <h3>三、參考文獻資料</h3>
         <p>參考連結：<a href="https://hpt.thb.gov.tw/topicArticle/T004" target="_blank">交通部：保持安全距離觀念 (點此開啟原始網頁)</a></p>
@@ -247,7 +247,7 @@
 
     <!-- 階段三 -->
     <div id="page-step3" class="page">
-      <h2>探究自然的方法</h2>
+      <h2>探究自然的方法（階段三）</h2>
       <section>
         <h3>反應時間測試</h3>
         <p>測試網站連結：<a href="https://www.arealme.com/reaction-test/zh/" target="_blank">點此開啟反應時間測驗網站</a></p>
@@ -266,7 +266,7 @@
 
     <!-- 階段四 -->
     <div id="page-step4" class="page">
-      <h2>探究自然的方法</h2>
+      <h2>探究自然的方法（階段四）</h2>
       <section>
         <h3>四、提出假說</h3>
         <p>我覺得 <input type="text" id="hypo-factor" style="width: 150px;"> 會影響遊戲反應時間，<input type="text" id="hypo-groupA" style="width: 150px;"> 反應通常比 <input type="text" id="hypo-groupB" style="width: 150px;"> 快。</p>
@@ -325,7 +325,7 @@
 
     <!-- 階段五 -->
     <div id="page-step5" class="page">
-      <h2>探究自然的方法</h2>
+      <h2>探究自然的方法（階段五）</h2>
       <section>
         <h3>九、研討與改進</h3>
         <div class="form-group">
@@ -759,8 +759,10 @@
         return;
       }
 
-      const descA = document.getElementById('desc-exp-group').value.trim() || '實驗組';
-      const descB = document.getElementById('desc-ctrl-group').value.trim() || '對照組';
+      const rawA = document.getElementById('desc-exp-group').value.trim();
+      const rawB = document.getElementById('desc-ctrl-group').value.trim();
+      const descA = rawA ? `實驗組 (${rawA})` : '實驗組';
+      const descB = rawB ? `對照組 (${rawB})` : '對照組';
 
       document.getElementById('chart-container').style.display = 'block';
 
@@ -1007,11 +1009,9 @@
 
     // 兩階段一鍵清除全庫資料
     function deleteAllDataTwoStage() {
-      // 階段一：要求輸入指定驗證碼
       const firstConfirm = prompt('⚠️ 警告：這將會【永久刪除所有學生的學習單紀錄】！\n若確定要清空資料庫（用於新學期/新班級），請在下方輸入驗證碼：DELETE');
       
       if (firstConfirm === 'DELETE') {
-        // 階段二：二次彈窗極力確認
         if (confirm('🚨【第二階段最終確認】\n您確定真的要清空 Firebase 雲端資料庫中的「所有資料」嗎？\n此動作無法復原！')) {
           database.ref('worksheets').remove().then(() => {
             alert('所有雲端學習單資料已完全清空！');
