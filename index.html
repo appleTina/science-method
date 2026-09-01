@@ -5,8 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>探究自然的方法 - 線上學習單</title>
   
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <!-- 匯出 PDF 與 網頁截圖套件 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
     :root {
@@ -125,7 +130,7 @@
     /* 後台管理介面樣式 */
     .admin-filter-bar {
       display: flex;
-      gap: 15px;
+      gap: 10px;
       align-items: center;
       background: #e9ecef;
       padding: 15px;
@@ -134,7 +139,7 @@
       flex-wrap: wrap;
     }
     .admin-filter-bar label { margin-bottom: 0; white-space: nowrap; }
-    .admin-filter-bar select { width: 180px; }
+    .admin-filter-bar select { width: 150px; }
 
     .student-card {
       border: 1px solid #ddd;
@@ -423,9 +428,9 @@
       <button onclick="showPage('page-home')" style="background-color: #6c757d; margin-bottom: 15px; width: auto;">🏠 返回首頁</button>
 
       <div class="admin-filter-bar">
-        <label for="admin-class-filter"><strong>班級篩選：</strong></label>
+        <label for="admin-class-filter"><strong>班級：</strong></label>
         <select id="admin-class-filter" onchange="filterAdminDisplay()">
-          <option value="ALL">顯示全部班級</option>
+          <option value="ALL">全部班級</option>
           <option value="701">701</option>
           <option value="702">702</option>
           <option value="703">703</option>
@@ -443,8 +448,9 @@
           <option value="715">715</option>
         </select>
 
-        <button onclick="exportCSV()" style="width: auto; background-color: #28a745;">匯出 CSV 檔</button>
-        <button onclick="deleteAllDataTwoStage()" style="width: auto; background-color: #dc3545; margin-left: auto;">⚠️ 一鍵清除所有資料 (新學期使用)</button>
+        <button onclick="exportCSV()" style="width: auto; background-color: #28a745;">📄 CSV檔</button>
+        <button onclick="exportPDF()" style="width: auto; background-color: #17a2b8;">📄 匯出 PDF (一卡一頁)</button>
+        <button onclick="deleteAllDataTwoStage()" style="width: auto; background-color: #dc3545; margin-left: auto;">⚠️ 一鍵清除所有資料</button>
       </div>
 
       <div id="admin-data-list"></div>
@@ -845,7 +851,7 @@
       });
     }
 
-    // 教師驗證機制（審核通過時呈現對應區塊與連結）
+    // 教師驗證機制
     function teacherVerify(secKey) {
       const pwd = prompt("請請教師輸入審核密碼：");
       if (pwd === "bio1234") {
@@ -869,7 +875,6 @@
       }
     }
 
-    // 手動暫存進度（不強制欄位檢查）
     function manualSaveDraft() {
       saveDataSilently();
       alert("✅ 已成功暫存目前填寫的進度至雲端！下次登入可繼續作答。");
@@ -1122,10 +1127,9 @@
         let dataBStr = record.expDataB ? record.expDataB.join(', ') : '';
 
         const cardId = `admin-card-${key.replace(/[^a-zA-Z0-9]/g, '_')}`;
-        const canvasId = `chart-${cardId}`;
 
         let cardHtml = `
-          <div class="student-card">
+          <div class="student-card" id="${cardId}">
             <div class="student-card-header">
               <h4>【${record.className || '未設定'}班】組員：${membersStr}</h4>
               <button class="btn-delete-single" onclick="deleteSingleData('${key}')">🗑️ 刪除此筆</button>
@@ -1168,9 +1172,7 @@
               <p><strong>實驗組 (${record.descExpGroup || '無名'})：</strong>[${dataAStr}] ➔ 平均: <strong>${record.expAvgA || '-'} ms</strong></p>
               <p><strong>對照組 (${record.descCtrlGroup || '無名'})：</strong>[${dataBStr}] ➔ 平均: <strong>${record.expAvgB || '-'} ms</strong></p>
               
-              <div style="text-align: center; margin-top: 15px;">
-                <canvas id="${canvasId}" width="400" height="260" style="border:1px solid #ddd; border-radius:6px; background:#fff;"></canvas>
-              </div>
+              <div style="text-align: center; margin-top: 15px;" class="chart-box"></div>
             </div>
 
             <div class="detail-section">
@@ -1189,7 +1191,7 @@
         container.innerHTML += cardHtml;
 
         setTimeout(() => {
-          renderAdminCanvasChart(canvasId, record.descExpGroup || '實驗組', record.descCtrlGroup || '對照組', parseFloat(record.expAvgA), parseFloat(record.expAvgB));
+          renderAdminImageChart(`${cardId}`, record.descExpGroup || '實驗組', record.descCtrlGroup || '對照組', parseFloat(record.expAvgA), parseFloat(record.expAvgB));
         }, 50);
       });
 
@@ -1198,22 +1200,28 @@
       }
     }
 
-    function renderAdminCanvasChart(canvasId, expName, ctrlName, avgA, avgB) {
-      const canvas = document.getElementById(canvasId);
-      if(!canvas) return;
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // 繪製圖表並直接轉為 Image (增加截圖相容性)
+    function renderAdminImageChart(cardId, expName, ctrlName, avgA, avgB) {
+      const card = document.getElementById(cardId);
+      if(!card) return;
+      const chartBox = card.querySelector('.chart-box');
+      if(!chartBox) return;
+
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = 400;
+      tempCanvas.height = 260;
+      const ctx = tempCanvas.getContext('2d');
 
       const valA = isNaN(avgA) ? 0 : avgA;
       const valB = isNaN(avgB) ? 0 : avgB;
 
       ctx.fillStyle = '#fff';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
 
       ctx.fillStyle = '#2c3e50';
       ctx.font = 'bold 14px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText('實驗結果平均比較圖', canvas.width / 2, 25);
+      ctx.fillText('實驗結果平均比較圖', tempCanvas.width / 2, 25);
 
       const maxVal = Math.max(valA, valB) * 1.25 || 100;
       const chartBottom = 210;
@@ -1250,6 +1258,66 @@
       ctx.fillStyle = '#333';
       ctx.fillText(valB + ' ms', xB + barWidth / 2, yB - 5);
       ctx.fillText(ctrlName, xB + barWidth / 2, chartBottom + 20);
+
+      const img = new Image();
+      img.src = tempCanvas.toDataURL('image/png');
+      img.style.maxWidth = '100%';
+      img.style.borderRadius = '6px';
+      img.style.border = '1px solid #ddd';
+
+      chartBox.innerHTML = '';
+      chartBox.appendChild(img);
+    }
+
+    // 📄 匯出全班 PDF 功能（一卡一頁，方便簡報投影或列印）
+    async function exportPDF() {
+      const cards = document.querySelectorAll('.student-card');
+      if (cards.length === 0) {
+        alert('目前畫面中無學生卡片可以匯出！');
+        return;
+      }
+
+      const selectedClass = document.getElementById('admin-class-filter').value;
+      const classText = selectedClass === 'ALL' ? '全校所有班級' : `${selectedClass}班`;
+      
+      alert(`開始產生 ${classText} 的 PDF 檔案，請稍候...`);
+
+      const { jsPDF } = window.jspdf;
+      let pdf = null;
+
+      // 暫時隱藏刪除按鈕
+      const deleteBtns = document.querySelectorAll('.btn-delete-single');
+      deleteBtns.forEach(btn => btn.style.display = 'none');
+
+      try {
+        for (let i = 0; i < cards.length; i++) {
+          const card = cards[i];
+          const canvas = await html2canvas(card, { scale: 2, useCORS: true, logging: false });
+          const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+          const imgWidth = canvas.width;
+          const imgHeight = canvas.height;
+
+          if (i === 0) {
+            pdf = new jsPDF({
+              orientation: imgWidth > imgHeight ? 'landscape' : 'portrait',
+              unit: 'px',
+              format: [imgWidth, imgHeight]
+            });
+          } else {
+            pdf.addPage([imgWidth, imgHeight], imgWidth > imgHeight ? 'landscape' : 'portrait');
+          }
+
+          pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+        }
+
+        pdf.save(`探究自然學習單_${classText}.pdf`);
+      } catch (err) {
+        console.error('PDF 產生失敗：', err);
+        alert('匯出 PDF 時發生錯誤！');
+      } finally {
+        deleteBtns.forEach(btn => btn.style.display = 'inline-block');
+      }
     }
 
     function deleteSingleData(key) {
