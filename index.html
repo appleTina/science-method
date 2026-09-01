@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>探究自然的方法 - 線上學習單</title>
   
-  <!-- 載入 Firebase 8.x SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -185,6 +184,28 @@
 
     .chart-container { text-align: center; margin-top: 20px; display: none; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #ddd; }
     canvas { max-width: 100%; }
+
+    /* 回到頂部浮動按鈕 */
+    .btn-back-to-top {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: bold;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      cursor: pointer;
+      z-index: 1000;
+      display: none;
+      width: auto;
+    }
+    .btn-back-to-top:hover {
+      background-color: #0056b3;
+    }
   </style>
 </head>
 <body>
@@ -194,7 +215,6 @@
       <button onclick="showAdminLogin()">教師後台</button>
     </div>
 
-    <!-- 首頁：登入頁 -->
     <div id="page-home" class="page active">
       <h1>探究自然的方法</h1>
       
@@ -234,7 +254,6 @@
       <button onclick="loadOrStartCourse()">進入課程</button>
     </div>
 
-    <!-- 階段一 -->
     <div id="page-step1" class="page">
       <h2>探究自然的方法</h2>
       <section>
@@ -258,7 +277,6 @@
       </div>
     </div>
 
-    <!-- 階段二 -->
     <div id="page-step2" class="page">
       <h2>探究自然的方法</h2>
       <section>
@@ -273,7 +291,6 @@
       </div>
     </div>
 
-    <!-- 階段三 -->
     <div id="page-step3" class="page">
       <h2>探究自然的方法</h2>
       <section>
@@ -293,13 +310,11 @@
       </div>
     </div>
 
-    <!-- 階段四 -->
     <div id="page-step4" class="page">
       <h2>探究自然的方法</h2>
       <section>
         <h3>四、提出假說</h3>
         
-        <!-- 自動顯示前一頁填寫的因素 -->
         <div class="info-box">
           📌 <strong>你在上頁填寫影響反應時間的因素為：</strong><br>
           <span id="display-q-factors" style="font-weight:bold; color:#0056b3;">（尚未填寫）</span>
@@ -341,11 +356,11 @@
         <p>紀錄項目：<input type="text" id="record-item" placeholder="如：遊戲反應時間(ms)" style="width:60%"></p>
         <div class="group-desc-box">
           <div class="group-desc-item">
-            <label><span style="color:red;">*</span> 🧪 實驗組代表因素：</label>
+            <label><span style="color:red;">*</span> 🧪 實驗組：</label>
             <input type="text" id="desc-exp-group" style="width:100%">
           </div>
           <div class="group-desc-item">
-            <label><span style="color:red;">*</span> 🛡️ 對照組代表因素：</label>
+            <label><span style="color:red;">*</span> 🛡️ 對照組：</label>
             <input type="text" id="desc-ctrl-group" style="width:100%">
           </div>
         </div>
@@ -376,7 +391,6 @@
       </div>
     </div>
 
-    <!-- 階段五 -->
     <div id="page-step5" class="page">
       <h2>探究自然的方法</h2>
       <section>
@@ -401,10 +415,11 @@
       </div>
     </div>
 
-    <!-- 教師後台 -->
     <div id="page-admin" class="page">
       <h2>教師後台管理 (Firebase 雲端同步)</h2>
       
+      <button onclick="showPage('page-home')" style="background-color: #6c757d; margin-bottom: 15px; width: auto;">🏠 返回首頁</button>
+
       <div class="admin-filter-bar">
         <label for="admin-class-filter"><strong>班級篩選：</strong></label>
         <select id="admin-class-filter" onchange="filterAdminDisplay()">
@@ -431,10 +446,11 @@
       </div>
 
       <div id="admin-data-list"></div>
-      <button onclick="showPage('page-home')" style="background-color: #6c757d; margin-top: 15px;">返回首頁</button>
     </div>
 
   </div>
+
+  <button id="btn-top" class="btn-back-to-top" onclick="scrollToTop()">⬆ 回到最上方</button>
 
   <script>
     // 1. 初始化 Firebase 專案設定
@@ -457,6 +473,21 @@
     // 審核狀態變數
     let teacherCheckedSec5 = false;
     let teacherCheckedSec6 = false;
+
+    // 回到頂部按鈕控制邏輯
+    window.onscroll = function() {
+      const topBtn = document.getElementById("btn-top");
+      const adminPage = document.getElementById("page-admin");
+      if (adminPage.classList.contains("active") && (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200)) {
+        topBtn.style.display = "block";
+      } else {
+        topBtn.style.display = "none";
+      }
+    };
+
+    function scrollToTop() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 
     function clearErrors() {
       document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
@@ -545,11 +576,113 @@
       container.innerHTML = html;
     }
 
+    function calcSelfAvgForStudent(idx) {
+      let sum = 0, count = 0;
+      for (let k = 1; k <= 5; k++) {
+        const val = parseFloat(document.getElementById(`test-${idx}-${k}`)?.value);
+        if (!isNaN(val)) { sum += val; count++; }
+      }
+      document.getElementById(`self-avg-${idx}`).textContent = count > 0 ? (sum / count).toFixed(1) : '-';
+    }
+
+    function calcExpAvg() {
+      const inputsA = document.querySelectorAll('.exp-data-a');
+      let sumA = 0, countA = 0;
+      inputsA.forEach(i => {
+        const val = parseFloat(i.value);
+        if (!isNaN(val)) { sumA += val; countA++; }
+      });
+      document.getElementById('exp-avg-a').textContent = countA > 0 ? (sumA / countA).toFixed(1) : '-';
+
+      const inputsB = document.querySelectorAll('.exp-data-b');
+      let sumB = 0, countB = 0;
+      inputsB.forEach(i => {
+        const val = parseFloat(i.value);
+        if (!isNaN(val)) { sumB += val; countB++; }
+      });
+      document.getElementById('exp-avg-b').textContent = countB > 0 ? (sumB / countB).toFixed(1) : '-';
+    }
+
+    function generateBarChart() {
+      const expName = document.getElementById('desc-exp-group').value.trim() || '實驗組';
+      const ctrlName = document.getElementById('desc-ctrl-group').value.trim() || '對照組';
+      const avgA = parseFloat(document.getElementById('exp-avg-a').textContent) || 0;
+      const avgB = parseFloat(document.getElementById('exp-avg-b').textContent) || 0;
+
+      if (avgA === 0 && avgB === 0) {
+        alert('請先填寫數據並算出平均值後，再點選生成長條圖！');
+        return;
+      }
+
+      const canvas = document.getElementById('barChart');
+      const ctx = canvas.getContext('2d');
+      const container = document.getElementById('chart-container');
+      container.style.display = 'block';
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#2c3e50';
+      ctx.font = 'bold 18px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('實驗結果平均比較圖', canvas.width / 2, 35);
+
+      const maxVal = Math.max(avgA, avgB) * 1.25 || 100;
+      const chartBottom = 320;
+      const chartHeight = 240;
+
+      ctx.strokeStyle = '#666';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(80, 60);
+      ctx.lineTo(80, chartBottom);
+      ctx.lineTo(500, chartBottom);
+      ctx.stroke();
+
+      ctx.fillStyle = '#666';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'right';
+      for (let i = 0; i <= 5; i++) {
+        const yVal = (maxVal / 5) * i;
+        const yPos = chartBottom - (chartHeight / 5) * i;
+        ctx.fillText(yVal.toFixed(0), 73, yPos + 4);
+        ctx.beginPath();
+        ctx.moveTo(76, yPos);
+        ctx.lineTo(80, yPos);
+        ctx.stroke();
+      }
+
+      const barWidth = 70;
+
+      const heightA = (avgA / maxVal) * chartHeight;
+      const xA = 160;
+      const yA = chartBottom - heightA;
+      ctx.fillStyle = '#007bff';
+      ctx.fillRect(xA, yA, barWidth, heightA);
+
+      ctx.fillStyle = '#333';
+      ctx.font = 'bold 15px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(avgA + ' ms', xA + barWidth / 2, yA - 8);
+      ctx.fillText(expName, xA + barWidth / 2, chartBottom + 25);
+
+      const heightB = (avgB / maxVal) * chartHeight;
+      const xB = 330;
+      const yB = chartBottom - heightB;
+      ctx.fillStyle = '#28a745';
+      ctx.fillRect(xB, yB, barWidth, heightB);
+
+      ctx.fillStyle = '#333';
+      ctx.fillText(avgB + ' ms', xB + barWidth / 2, yB - 8);
+      ctx.fillText(ctrlName, xB + barWidth / 2, chartBottom + 25);
+    }
+
     function renderStepInputs(stepsArray) {
       const container = document.getElementById('steps-container');
       container.innerHTML = '';
       const steps = stepsArray && stepsArray.length > 0 ? stepsArray : ['', ''];
-      
       steps.forEach((text, idx) => {
         const div = document.createElement('div');
         div.className = 'step-item';
@@ -623,7 +756,6 @@
 
       const firstSeat = document.getElementById('member-seat-1').value.trim();
       const firstName = document.getElementById('member-name-1').value.trim();
-
       const docKey = `student_${className}_${firstSeat}_${firstName}`;
       window.currentDocKey = docKey;
 
@@ -696,9 +828,17 @@
 
     function goToStep5() {
       let checkList = [
-        'hypo-factor', 'hypo-groupA', 'hypo-groupB',
-        'exp-group-a', 'exp-group-b', 'exp-variable', 'exp-control',
-        'record-item', 'desc-exp-group', 'desc-ctrl-group', 'exp-conclusion'
+        'hypo-factor',
+        'hypo-groupA',
+        'hypo-groupB',
+        'exp-group-a',
+        'exp-group-b',
+        'exp-variable',
+        'exp-control',
+        'record-item',
+        'desc-exp-group',
+        'desc-ctrl-group',
+        'exp-conclusion'
       ];
       document.querySelectorAll('#steps-container .step-input').forEach(input => checkList.push(input));
       document.querySelectorAll('.exp-data-a').forEach(input => checkList.push(input));
@@ -720,9 +860,9 @@
 
     function saveDataSilently() {
       if (!window.currentDocKey) return;
-
       const className = document.getElementById('class-select').value;
       const count = parseInt(document.getElementById('member-count').value) || 1;
+
       let members = [];
       for (let i = 1; i <= count; i++) {
         members.push({
@@ -804,6 +944,7 @@
       document.getElementById('hypo-factor').value = data.hypoFactor || '';
       document.getElementById('hypo-groupA').value = data.hypoGroupA || '';
       document.getElementById('hypo-groupB').value = data.hypoGroupB || '';
+
       document.getElementById('exp-group-a').value = data.expGroupA || '';
       document.getElementById('exp-group-b').value = data.expGroupB || '';
       document.getElementById('exp-variable').value = data.expVariable || '';
@@ -830,347 +971,276 @@
       document.getElementById('record-item').value = data.recordItem || '';
       document.getElementById('desc-exp-group').value = data.descExpGroup || '';
       document.getElementById('desc-ctrl-group').value = data.descCtrlGroup || '';
-      
-      if (data.expDataA) {
-        document.querySelectorAll('.exp-data-a').forEach((el, idx) => el.value = data.expDataA[idx] || '');
+
+      if (data.expDataA && Array.isArray(data.expDataA)) {
+        const inputsA = document.querySelectorAll('.exp-data-a');
+        data.expDataA.forEach((v, idx) => { if(inputsA[idx]) inputsA[idx].value = v; });
       }
-      if (data.expDataB) {
-        document.querySelectorAll('.exp-data-b').forEach((el, idx) => el.value = data.expDataB[idx] || '');
+      if (data.expDataB && Array.isArray(data.expDataB)) {
+        const inputsB = document.querySelectorAll('.exp-data-b');
+        data.expDataB.forEach((v, idx) => { if(inputsB[idx]) inputsB[idx].value = v; });
       }
+
       calcExpAvg();
-      
+
       document.getElementById('exp-conclusion').value = data.conclusion || '';
       document.getElementById('disc-improvement').value = data.discImprovement || '';
       document.getElementById('disc-new-questions').value = data.discNewQuestions || '';
       document.getElementById('disc-interesting').value = data.discInteresting || '';
     }
 
-    function calcSelfAvgForStudent(studentIndex) {
-      const vals = [];
-      for (let k = 1; k <= 5; k++) {
-        const val = parseFloat(document.getElementById(`test-${studentIndex}-${k}`)?.value) || 0;
-        if (val > 0) vals.push(val);
-      }
-      const avgElem = document.getElementById(`self-avg-${studentIndex}`);
-      if (avgElem) {
-        avgElem.textContent = vals.length > 0 ? (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1) : '-';
-      }
-    }
-
-    function calcExpAvg() {
-      const getAvg = (className) => {
-        const vals = Array.from(document.querySelectorAll('.' + className)).map(i => parseFloat(i.value) || 0).filter(v => v > 0);
-        return vals.length > 0 ? (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1) : '-';
-      };
-      document.getElementById('exp-avg-a').textContent = getAvg('exp-data-a');
-      document.getElementById('exp-avg-b').textContent = getAvg('exp-data-b');
-    }
-
-    function generateBarChart() {
-      const valA = parseFloat(document.getElementById('exp-avg-a').textContent);
-      const valB = parseFloat(document.getElementById('exp-avg-b').textContent);
-
-      if (isNaN(valA) || isNaN(valB)) {
-        alert('請先填寫完完整的實驗組與對照組數據！');
-        return;
-      }
-
-      const rawA = document.getElementById('desc-exp-group').value.trim();
-      const rawB = document.getElementById('desc-ctrl-group').value.trim();
-      const descA = rawA ? `實驗組 (${rawA})` : '實驗組';
-      const descB = rawB ? `對照組 (${rawB})` : '對照組';
-
-      document.getElementById('chart-container').style.display = 'block';
-
-      const canvas = document.getElementById('barChart');
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const width = canvas.width;
-      const height = canvas.height;
-      const paddingLeft = 90;
-      const paddingBottom = 60;
-      const paddingTop = 50;
-      const paddingRight = 40;
-
-      const maxVal = Math.max(valA, valB, 100) * 1.25;
-      const chartHeight = height - paddingBottom - paddingTop;
-      const chartWidth = width - paddingLeft - paddingRight;
-
-      ctx.beginPath();
-      ctx.moveTo(paddingLeft, paddingTop);
-      ctx.lineTo(paddingLeft, height - paddingBottom);
-      ctx.lineTo(width - paddingRight, height - paddingBottom);
-      ctx.strokeStyle = '#333';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.moveTo(paddingLeft - 5, paddingTop + 8);
-      ctx.lineTo(paddingLeft, paddingTop);
-      ctx.lineTo(paddingLeft + 5, paddingTop + 8);
-      ctx.fillStyle = '#333';
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.moveTo(width - paddingRight - 8, height - paddingBottom - 5);
-      ctx.lineTo(width - paddingRight, height - paddingBottom);
-      ctx.lineTo(width - paddingRight - 8, height - paddingBottom + 5);
-      ctx.fill();
-
-      ctx.save();
-      ctx.translate(25, (height - paddingBottom + paddingTop) / 2);
-      ctx.rotate(-Math.PI / 2);
-      ctx.font = 'bold 14px Arial';
-      ctx.fillStyle = '#333';
-      ctx.textAlign = 'center';
-      ctx.fillText('時間 (毫秒)', 0, 0);
-      ctx.restore();
-
-      ctx.font = 'bold 14px Arial';
-      ctx.fillStyle = '#333';
-      ctx.textAlign = 'center';
-      ctx.fillText('組別', paddingLeft + chartWidth / 2, height - 10);
-
-      const stepCount = 4;
-      ctx.font = '12px Arial';
-      ctx.textAlign = 'right';
-      ctx.textBaseline = 'middle';
-      for (let i = 0; i <= stepCount; i++) {
-        const value = Math.round((maxVal / stepCount) * i);
-        const y = height - paddingBottom - (chartHeight / stepCount) * i;
-
-        ctx.beginPath();
-        ctx.moveTo(paddingLeft - 5, y);
-        ctx.lineTo(paddingLeft, y);
-        ctx.strokeStyle = '#333';
-        ctx.stroke();
-
-        ctx.fillStyle = '#666';
-        ctx.fillText(value, paddingLeft - 10, y);
-
-        if (i > 0) {
-          ctx.beginPath();
-          ctx.moveTo(paddingLeft, y);
-          ctx.lineTo(width - paddingRight, y);
-          ctx.strokeStyle = '#eee';
-          ctx.stroke();
-        }
-      }
-
-      const barWidth = 60;
-      const xA = paddingLeft + chartWidth * 0.25 - barWidth / 2;
-      const xB = paddingLeft + chartWidth * 0.75 - barWidth / 2;
-
-      const hA = (valA / maxVal) * chartHeight;
-      const hB = (valB / maxVal) * chartHeight;
-
-      ctx.fillStyle = '#007bff';
-      ctx.fillRect(xA, height - paddingBottom - hA, barWidth, hA);
-      ctx.fillStyle = '#333';
-      ctx.font = 'bold 13px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText(`${valA} ms`, xA + barWidth / 2, height - paddingBottom - hA - 10);
-      ctx.fillText(descA, xA + barWidth / 2, height - paddingBottom + 20);
-
-      ctx.fillStyle = '#28a745';
-      ctx.fillRect(xB, height - paddingBottom - hB, barWidth, hB);
-      ctx.fillStyle = '#333';
-      ctx.font = 'bold 13px Arial';
-      ctx.fillText(`${valB} ms`, xB + barWidth / 2, height - paddingBottom - hB - 10);
-      ctx.fillText(descB, xB + barWidth / 2, height - paddingBottom + 20);
-    }
-
-    // 教師後台登入密碼 bio1234
     function showAdminLogin() {
-      const pwd = prompt('請輸入教師後台密碼：');
-      if (pwd === 'bio1234') {
-        loadAdminDataFromFirebase();
+      const pwd = prompt("請輸入教師後台登入密碼：");
+      if (pwd === "bio1234") {
         showPage('page-admin');
+        loadAdminData();
       } else if (pwd !== null) {
-        alert('密碼錯誤！');
+        alert("密碼錯誤，無法進入教師後台！");
       }
     }
 
-    // 載入全班 Firebase 雲端資料
-    function loadAdminDataFromFirebase() {
-      const listContainer = document.getElementById('admin-data-list');
-      listContainer.innerHTML = '載入雲端資料中...';
+    let globalAdminData = {};
 
-      database.ref('worksheets').once('value').then((snapshot) => {
-        let allRecords = [];
-
-        snapshot.forEach((childSnapshot) => {
-          const val = childSnapshot.val();
-          val.docKey = childSnapshot.key;
-          allRecords.push(val);
-        });
-
-        allRecords.sort((a, b) => {
-          if (a.className !== b.className) return a.className.localeCompare(b.className);
-          return (a.members[0]?.seat || 0) - (b.members[0]?.seat || 0);
-        });
-
-        window.allAdminRecords = allRecords;
+    function loadAdminData() {
+      database.ref('worksheets').on('value', (snapshot) => {
+        globalAdminData = snapshot.val() || {};
         filterAdminDisplay();
-      }).catch(err => {
-        listContainer.innerHTML = '<p>資料載入失敗！</p>';
       });
     }
 
-    // 根據班級篩選並渲染完整的學生解答卡片
     function filterAdminDisplay() {
       const selectedClass = document.getElementById('admin-class-filter').value;
-      const listContainer = document.getElementById('admin-data-list');
-      const allRecords = window.allAdminRecords || [];
+      const container = document.getElementById('admin-data-list');
+      container.innerHTML = '';
 
-      let filtered = selectedClass === 'ALL' 
-        ? allRecords 
-        : allRecords.filter(r => r.className === selectedClass);
-
-      if (filtered.length === 0) {
-        listContainer.innerHTML = '<p style="text-align:center; padding: 20px; color:#888;">目前尚無此班級的學生提交資料。</p>';
+      let keys = Object.keys(globalAdminData);
+      if (keys.length === 0) {
+        container.innerHTML = '<p style="text-align:center; color:#888;">目前資料庫尚無任何學生繳交數據。</p>';
         return;
       }
 
-      let html = '';
-      filtered.forEach(data => {
-        const memberStr = data.members ? data.members.map(m => `${m.seat}號 ${m.name}`).join('、') : '無組員資料';
-        
-        let reactionHTML = '';
-        if (data.reactionDataList && data.reactionDataList.length > 0) {
-          reactionHTML = '<ul>' + data.reactionDataList.map(rd => 
-            `<li><strong>${rd.seat}號 ${rd.name}：</strong> 次數數據 [${rd.t1 || '-'}, ${rd.t2 || '-'}, ${rd.t3 || '-'}, ${rd.t4 || '-'}, ${rd.t5 || '-'}] ms ➔ <strong>平均：${rd.avg || '-'} ms</strong></li>`
-          ).join('') + '</ul>';
-        } else {
-          reactionHTML = '<p>無反應時間數據</p>';
+      let count = 0;
+      keys.forEach((key) => {
+        const record = globalAdminData[key];
+        if (selectedClass !== 'ALL' && record.className !== selectedClass) {
+          return;
+        }
+        count++;
+
+        let membersStr = record.members ? record.members.map(m => `${m.seat}號 ${m.name}`).join('、') : '無資料';
+
+        let reactionRows = '';
+        if (record.reactionDataList && record.reactionDataList.length > 0) {
+          record.reactionDataList.forEach(r => {
+            reactionRows += `<tr><td>${r.seat}號 ${r.name}</td><td>${r.t1}</td><td>${r.t2}</td><td>${r.t3}</td><td>${r.t4}</td><td>${r.t5}</td><td><strong>${r.avg}</strong></td></tr>`;
+          });
         }
 
-        let stepsHTML = '';
-        if (data.stepsData && data.stepsData.length > 0) {
-          stepsHTML = '<ol style="margin:5px 0; padding-left:20px;">' + data.stepsData.map(s => `<li>${s || '無內容'}</li>`).join('') + '</ol>';
-        } else {
-          stepsHTML = '<p>無步驟資料</p>';
-        }
+        let stepsStr = record.stepsData ? record.stepsData.map((s, i) => `<li>步驟${i+1}：${s}</li>`).join('') : '無';
 
-        const dataAStr = data.expDataA ? data.expDataA.join(', ') : '-';
-        const dataBStr = data.expDataB ? data.expDataB.join(', ') : '-';
+        let dataAStr = record.expDataA ? record.expDataA.join(', ') : '';
+        let dataBStr = record.expDataB ? record.expDataB.join(', ') : '';
 
-        const sec5CheckBadge = data.teacherCheckedSec5 ? '<span style="color:#28a745; font-weight:bold;">[✅ 已通過審核]</span>' : '<span style="color:#dc3545;">[❌ 未確認]</span>';
-        const sec6CheckBadge = data.teacherCheckedSec6 ? '<span style="color:#28a745; font-weight:bold;">[✅ 已通過審核]</span>' : '<span style="color:#dc3545;">[❌ 未確認]</span>';
+        // 修正3：為後台各個學生卡片動態渲染繪製長條圖 canvas
+        const cardId = `admin-card-${key.replace(/[^a-zA-Z0-9]/g, '_')}`;
+        const canvasId = `chart-${cardId}`;
 
-        html += `
+        let cardHtml = `
           <div class="student-card">
             <div class="student-card-header">
-              <h4>【${data.className} 班】組員：${memberStr}</h4>
-              <button class="btn-delete-single" onclick="deleteSingleStudent('${data.docKey}', '${data.className}', '${memberStr}')">🗑️ 刪除此筆資料</button>
+              <h4>【${record.className || '未設定'}班】組員：${membersStr}</h4>
+              <button class="btn-delete-single" onclick="deleteSingleData('${key}')">🗑️ 刪除此筆</button>
             </div>
             
-            <p><strong>🕒 最後更新時間：</strong>${data.updatedAt || '無'}</p>
-            
+            <p><strong>最後更新時間：</strong>${record.updatedAt || '無'}</p>
+
             <div class="detail-section">
-              <h5>一與二、車禍原因思考 (問題探究)</h5>
-              <p><strong>回答：</strong>${data.problem || '未填寫'}</p>
+              <h5>二、提出問題</h5>
+              <p>${record.problem || '未填寫'}</p>
             </div>
 
             <div class="detail-section">
-              <h5>三、個人反應時間測試與影響因素</h5>
-              ${reactionHTML}
-              <p><strong>影響反應時間之因素：</strong>${data.factors || '未填寫'}</p>
+              <h5>三、個人反應時間測試</h5>
+              <p><strong>影響因素：</strong>${record.factors || '未填寫'}</p>
+              <table>
+                <tr><th>學生</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>平均</th></tr>
+                ${reactionRows}
+              </table>
             </div>
 
             <div class="detail-section">
-              <h5>四與五、假說與變因設計 ${sec5CheckBadge}</h5>
-              <p><strong>假說設定：</strong>覺得【${data.hypoFactor || ''}】會影響反應時間，【${data.hypoGroupA || ''}】反應通常比【${data.hypoGroupB || ''}】快。</p>
-              <p><strong>操作變因：</strong>實驗組：${data.expGroupA || '未填'} | 對照組：${data.expGroupB || '未填'}</p>
-              <p><strong>應變變因：</strong>${data.expVariable || '未填'}</p>
-              <p><strong>控制變因：</strong>${data.expControl || '未填'}</p>
+              <h5>四、提出假說與變因</h5>
+              <p><strong>假說：</strong>覺得 ${record.hypoFactor || '-'} 會影響遊戲反應時間，${record.hypoGroupA || '-'} 反應比 ${record.hypoGroupB || '-'} 快。</p>
+              <p><strong>操作變因：</strong>實驗組[${record.expGroupA || '-'}] / 對照組[${record.expGroupB || '-'}]</p>
+              <p><strong>應變變因：</strong>${record.expVariable || '-'}</p>
+              <p><strong>控制變因：</strong>${record.expControl || '-'}</p>
+              <p><strong>變因審核：</strong>${record.teacherCheckedSec5 ? '✅ 已通過' : '❌ 未審核'}</p>
             </div>
 
             <div class="detail-section">
-              <h5>六與七、步驟與實驗數據記錄 ${sec6CheckBadge}</h5>
-              <p><strong>實驗步驟：</strong></p>
-              ${stepsHTML}
-              <p><strong>記錄項目：</strong>${data.recordItem || '未填'}</p>
-              <p><strong>🧪 實驗組 (${data.descExpGroup || '未設定'})：</strong>[${dataAStr}] ➔ <strong>平均：${data.expAvgA || '-'} ms</strong></p>
-              <p><strong>🛡️ 對照組 (${data.descCtrlGroup || '未設定'})：</strong>[${dataBStr}] ➔ <strong>平均：${data.expAvgB || '-'} ms</strong></p>
+              <h5>六、實驗步驟</h5>
+              <ul>${stepsStr}</ul>
+              <p><strong>步驟審核：</strong>${record.teacherCheckedSec6 ? '✅ 已通過' : '❌ 未審核'}</p>
+            </div>
+
+            <div class="detail-section">
+              <h5>七、紀錄實驗結果與分析</h5>
+              <p><strong>紀錄項目：</strong>${record.recordItem || '-'}</p>
+              <p><strong>實驗組 (${record.descExpGroup || '無名'})：</strong>[${dataAStr}] ➔ 平均: <strong>${record.expAvgA || '-'} ms</strong></p>
+              <p><strong>對照組 (${record.descCtrlGroup || '無名'})：</strong>[${dataBStr}] ➔ 平均: <strong>${record.expAvgB || '-'} ms</strong></p>
+              
+              <div style="text-align: center; margin-top: 15px;">
+                <canvas id="${canvasId}" width="400" height="260" style="border:1px solid #ddd; border-radius:6px; background:#fff;"></canvas>
+              </div>
             </div>
 
             <div class="detail-section">
               <h5>八、實驗結論</h5>
-              <p><strong>結論內容：</strong>${data.conclusion || '未填寫'}</p>
+              <p>${record.conclusion || '未填寫'}</p>
             </div>
 
             <div class="detail-section">
               <h5>九、研討與改進</h5>
-              <p><strong>1. 是否有改進的地方：</strong>${data.discImprovement || '未填寫'}</p>
-              <p><strong>2. 發現的新問題：</strong>${data.discNewQuestions || '未填寫'}</p>
-              <p><strong>3. 覺得有趣的部分：</strong>${data.discInteresting || '未填寫'}</p>
+              <p><strong>1. 改進之處：</strong>${record.discImprovement || '未填寫'}</p>
+              <p><strong>2. 新發現問題：</strong>${record.discNewQuestions || '未填寫'}</p>
+              <p><strong>3. 有趣的地方：</strong>${record.discInteresting || '未填寫'}</p>
             </div>
           </div>
         `;
+        container.innerHTML += cardHtml;
+
+        // 渲染長條圖至 Canvas
+        setTimeout(() => {
+          renderAdminCanvasChart(canvasId, record.descExpGroup || '實驗組', record.descCtrlGroup || '對照組', parseFloat(record.expAvgA), parseFloat(record.expAvgB));
+        }, 50);
       });
 
-      listContainer.innerHTML = html;
+      if (count === 0) {
+        container.innerHTML = `<p style="text-align:center; color:#888;">班級 ${selectedClass} 尚無資料。</p>`;
+      }
     }
 
-    // 刪除個別學生資料
-    function deleteSingleStudent(docKey, className, memberStr) {
-      if (confirm(`確定要刪除【${className}班 - ${memberStr}】的這筆學習單資料嗎？\n刪除後無法恢復！`)) {
-        database.ref('worksheets/' + docKey).remove().then(() => {
-          alert('該筆資料已成功刪除！');
-          loadAdminDataFromFirebase();
+    // 繪製教師後台長條圖函數
+    function renderAdminCanvasChart(canvasId, expName, ctrlName, avgA, avgB) {
+      const canvas = document.getElementById(canvasId);
+      if(!canvas) return;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const valA = isNaN(avgA) ? 0 : avgA;
+      const valB = isNaN(avgB) ? 0 : avgB;
+
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#2c3e50';
+      ctx.font = 'bold 14px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('實驗結果平均比較圖', canvas.width / 2, 25);
+
+      const maxVal = Math.max(valA, valB) * 1.25 || 100;
+      const chartBottom = 210;
+      const chartHeight = 150;
+
+      ctx.strokeStyle = '#888';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(50, 40);
+      ctx.lineTo(50, chartBottom);
+      ctx.lineTo(360, chartBottom);
+      ctx.stroke();
+
+      const barWidth = 50;
+
+      // 實驗組
+      const heightA = (valA / maxVal) * chartHeight;
+      const xA = 110;
+      const yA = chartBottom - heightA;
+      ctx.fillStyle = '#007bff';
+      ctx.fillRect(xA, yA, barWidth, heightA);
+
+      ctx.fillStyle = '#333';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(valA + ' ms', xA + barWidth / 2, yA - 5);
+      ctx.fillText(expName, xA + barWidth / 2, chartBottom + 20);
+
+      // 對照組
+      const heightB = (valB / maxVal) * chartHeight;
+      const xB = 230;
+      const yB = chartBottom - heightB;
+      ctx.fillStyle = '#28a745';
+      ctx.fillRect(xB, yB, barWidth, heightB);
+
+      ctx.fillStyle = '#333';
+      ctx.fillText(valB + ' ms', xB + barWidth / 2, yB - 5);
+      ctx.fillText(ctrlName, xB + barWidth / 2, chartBottom + 20);
+    }
+
+    function deleteSingleData(key) {
+      if (confirm(`確定要刪除這筆學生紀錄嗎？（鍵值：${key}）\n刪除後將無法復原！`)) {
+        database.ref('worksheets/' + key).remove().then(() => {
+          alert('刪除成功！');
         }).catch(err => {
           alert('刪除失敗：' + err.message);
         });
       }
     }
 
-    // 兩階段一鍵清除全庫資料
     function deleteAllDataTwoStage() {
-      const firstConfirm = prompt('⚠️ 警告：這將會【永久刪除所有學生的學習單紀錄】！\n若確定要清空資料庫（用於新學期/新班級），請在下方輸入驗證碼：DELETE');
-      
-      if (firstConfirm === 'DELETE') {
-        if (confirm('🚨【第二階段最終確認】\n您確定真的要清空 Firebase 雲端資料庫中的「所有資料」嗎？\n此動作無法復原！')) {
+      const pwd = prompt("⚠️ 警告：這將會【永久刪除全校所有班級】的學生紀錄！\n請輸入確認密碼以執行：");
+      if (pwd === "delete999") {
+        if (confirm("最後確認：真的要清除全部資料庫紀錄嗎？清除後資料將永久消失！")) {
           database.ref('worksheets').remove().then(() => {
-            alert('所有雲端學習單資料已完全清空！');
-            loadAdminDataFromFirebase();
+            alert('全校學生紀錄已順利全部清除！');
           }).catch(err => {
             alert('清除失敗：' + err.message);
           });
         }
-      } else if (firstConfirm !== null) {
-        alert('驗證碼輸入錯誤，取消清除動作。');
+      } else if (pwd !== null) {
+        alert("刪除密碼錯誤，取消清除操作！");
       }
     }
 
-    // 匯出 CSV 檔
     function exportCSV() {
-      const selectedClass = document.getElementById('admin-class-filter').value;
-      const allRecords = window.allAdminRecords || [];
-      
-      let filtered = selectedClass === 'ALL' 
-        ? allRecords 
-        : allRecords.filter(r => r.className === selectedClass);
-
-      if (filtered.length === 0) {
-        alert('目前無資料可匯出！');
+      let keys = Object.keys(globalAdminData);
+      if (keys.length === 0) {
+        alert('目前無可匯出的資料！');
         return;
       }
 
-      let csvContent = "\uFEFF班級,組員資料,車禍原因思考,反應時間影響因素,假說(因素),假說(組A),假說(組B),操作變因(實驗組),操作變因(對照組),控制變因,教師審核(變因),實驗步驟,教師審核(步驟),實驗組描述,實驗組數據,實驗組平均,對照組描述,對照組數據,對照組平均,實驗結論,改進之處,新問題,有趣之處,更新時間\n";
+      let csvContent = "\uFEFF";
       
-      filtered.forEach(r => {
-        const memberStr = r.members ? r.members.map(m => `${m.seat}號${m.name}`).join(';') : '';
-        const stepsStr = r.stepsData ? r.stepsData.join(' | ') : '';
-        const dataAStr = r.expDataA ? r.expDataA.join(';') : '';
-        const dataBStr = r.expDataB ? r.expDataB.join(';') : '';
+      const headers = [
+        "文件鍵值", "班級", "成員紀錄", "問題回答", "影響因素", 
+        "測驗紀錄(座號/姓名/1~5次/平均)", "假說因素", "假說組別A", "假說組別B",
+        "操作變因-實驗組", "操作變因-對照組", "控制變因", "變因審核狀態",
+        "實驗步驟", "步驟審核狀態", "實驗組名稱", "實驗組數據", "實驗組平均",
+        "對照組名稱", "對照組數據", "對照組平均", "實驗結論",
+        "研討-改進之處", "研討-新問題", "研討-有趣點", "最後更新時間"
+      ];
+      csvContent += headers.join(",") + "\n";
 
-        const row = [
-          r.className,
-          `"${memberStr}"`,
+      keys.forEach(key => {
+        const r = globalAdminData[key];
+        
+        let membersStr = r.members ? r.members.map(m => `${m.seat}號${m.name}`).join(';') : '';
+        
+        let reactionStr = r.reactionDataList ? r.reactionDataList.map(rd => 
+          `${rd.seat}號${rd.name}(${rd.t1},${rd.t2},${rd.t3},${rd.t4},${rd.t5} | Avg:${rd.avg})`
+        ).join(' / ') : '';
+
+        let stepsStr = r.stepsData ? r.stepsData.join('; ') : '';
+        let dataAStr = r.expDataA ? r.expDataA.join(';') : '';
+        let dataBStr = r.expDataB ? r.expDataB.join(';') : '';
+
+        let row = [
+          `"${key}"`,
+          `"${r.className || ''}"`,
+          `"${membersStr.replace(/"/g, '""')}"`,
           `"${(r.problem || '').replace(/"/g, '""')}"`,
           `"${(r.factors || '').replace(/"/g, '""')}"`,
+          `"${reactionStr.replace(/"/g, '""')}"`,
           `"${(r.hypoFactor || '').replace(/"/g, '""')}"`,
           `"${(r.hypoGroupA || '').replace(/"/g, '""')}"`,
           `"${(r.hypoGroupB || '').replace(/"/g, '""')}"`,
@@ -1199,16 +1269,11 @@
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.setAttribute("href", url);
-      link.setAttribute("download", `學習單完整資料_${selectedClass}班.csv`);
+      link.setAttribute("download", `自然探究學習單紀錄_${new Date().toISOString().slice(0,10)}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     }
-
-    window.addEventListener('DOMContentLoaded', () => {
-      renderMemberInputs();
-      renderStepInputs(['', '']);
-    });
   </script>
 </body>
 </html>
