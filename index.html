@@ -178,10 +178,12 @@
     .notice-text { color: #d9534f; font-weight: bold; background: #fdf7f7; padding: 8px 12px; border-left: 4px solid #d9534f; margin: 10px 0; }
     .info-box { color: #0c5460; background-color: #d1ecf1; border: 1px solid #bee5eb; padding: 12px 15px; border-radius: 6px; margin-bottom: 15px; font-size: 15px; }
 
-    .step-item, .factor-item, .ctrl-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .step-item, .factor-item, .ctrl-item { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
     .step-label, .factor-label, .ctrl-label { font-weight: bold; white-space: nowrap; min-width: 85px; }
     .step-input, .factor-input, .ctrl-input { flex: 1; }
-    .btn-del-step, .btn-del-factor, .btn-del-ctrl { background-color: #dc3545; width: auto; padding: 8px 15px; }
+    .btn-del-step, .btn-del-factor, .btn-del-ctrl { background-color: #dc3545; width: auto; padding: 8px 12px; font-size: 14px; }
+    .btn-move-step { background-color: #6c757d; width: auto; padding: 8px 10px; font-size: 14px; }
+    .btn-move-step:hover { background-color: #495057; }
     .btn-add-step, .btn-add-factor, .btn-add-ctrl { background-color: #28a745; width: auto; margin-top: 5px; padding: 8px 16px; }
 
     .group-desc-box { display: flex; gap: 20px; margin-bottom: 15px; }
@@ -190,7 +192,6 @@
     .chart-container { text-align: center; margin-top: 20px; display: none; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #ddd; }
     canvas { max-width: 100%; }
 
-    /* 回到頂部浮動按鈕 */
     .btn-back-to-top {
       position: fixed;
       bottom: 30px;
@@ -212,7 +213,6 @@
       background-color: #0056b3;
     }
 
-    /* 表格設計專用CSS */
     .table-exp-design {
       width: 100%;
       border-collapse: collapse;
@@ -402,7 +402,7 @@
       <section>
         <h3>六、設計實驗步驟</h3>
         <div id="steps-container"></div>
-        <button type="button" class="btn-add-step" onclick="addStepInput()">+ 新增步驟</button>
+        <button type="button" class="btn-add-step" onclick="addMiddleStepInput()">+ 新增步驟</button>
         <br><br>
         <div id="check-container-sec6">
           <button type="button" class="btn-teacher-check" onclick="teacherVerify('sec6')">🔒 教師確認（六、實驗步驟）</button>
@@ -512,7 +512,6 @@
   <button id="btn-top" class="btn-back-to-top" onclick="scrollToTop()">⬆ 回到最上方</button>
 
   <script>
-    // 1. 初始化 Firebase 專案設定
     const firebaseConfig = {
       apiKey: "AIzaSyAhALzLLVlenbs71i6cwPu8tE-tVVGSEm4",
       authDomain: "sciencemethod-6f59f.firebaseapp.com",
@@ -529,16 +528,17 @@
     }
     const database = firebase.database();
 
-    // 審核狀態變數
     let teacherCheckedSec5 = false;
     let teacherCheckedSec6 = false;
 
-    // 頁面初始化
+    // 固定步驟常數定義
+    const FIRST_STEP_TEXT = "準備平板、打開反應時間測試的網頁";
+    const LAST_STEP_TEXT = "進行兩個組別的反應時間測試，並且記錄反應時間於下方表格內";
+
     document.addEventListener('DOMContentLoaded', () => {
       renderFactorInputs(['', '', '']);
       renderCtrlInputs(['', '', '', '', '']);
       
-      // 綁定假說文字實時預覽
       ['hypo-factor', 'hypo-groupA', 'hypo-groupB'].forEach(id => {
         document.getElementById(id).addEventListener('input', updateHypoPreview);
       });
@@ -551,7 +551,6 @@
       document.getElementById('display-hypo-text').textContent = `我覺得【${f}】會影響遊戲反應時間，【${a}】反應通常比【${b}】快。`;
     }
 
-    // 回到頂部按鈕控制邏輯
     window.onscroll = function() {
       const topBtn = document.getElementById("btn-top");
       const adminPage = document.getElementById("page-admin");
@@ -623,7 +622,6 @@
       container.innerHTML = html;
     }
 
-    // 渲染影響因素欄位
     function renderFactorInputs(factorsArray) {
       const container = document.getElementById('factors-container');
       container.innerHTML = '';
@@ -676,7 +674,6 @@
       return Array.from(document.querySelectorAll('#factors-container .factor-input')).map(input => input.value.trim());
     }
 
-    /* 渲染與管理 控制變因 欄位 */
     function renderCtrlInputs(ctrlArray) {
       const container = document.getElementById('ctrl-variables-container');
       container.innerHTML = '';
@@ -868,43 +865,96 @@
       ctx.fillText(ctrlName, xB + barWidth / 2, chartBottom + 25);
     }
 
+    /* 6. 實驗步驟渲染與動態管理（含首尾固定與上下移動） */
     function renderStepInputs(stepsArray) {
       const container = document.getElementById('steps-container');
       container.innerHTML = '';
-      const steps = stepsArray && stepsArray.length > 0 ? stepsArray : ['', ''];
-      steps.forEach((text, idx) => {
+      
+      // 過濾掉固定的首尾項目，提取中間可編輯的步驟
+      let middleSteps = [];
+      if (Array.isArray(stepsArray)) {
+        middleSteps = stepsArray.filter(s => s !== FIRST_STEP_TEXT && s !== LAST_STEP_TEXT);
+      }
+      if (middleSteps.length === 0) {
+        middleSteps = ['']; // 預設至少一個中間步驟
+      }
+
+      // 1. 渲染固定第一個步驟
+      const firstDiv = document.createElement('div');
+      firstDiv.className = 'step-item fixed-step';
+      firstDiv.innerHTML = `
+        <span class="step-label">步驟 1：</span>
+        <input type="text" class="step-input" value="${FIRST_STEP_TEXT}" readonly style="background-color: #e9ecef; color: #495057; font-weight: bold;">
+      `;
+      container.appendChild(firstDiv);
+
+      // 2. 渲染中間步驟
+      middleSteps.forEach((text) => {
         const div = document.createElement('div');
-        div.className = 'step-item';
+        div.className = 'step-item middle-step';
         div.innerHTML = `
-          <span class="step-label">步驟 ${idx + 1}：</span>
-          <input type="text" class="step-input" value="${text}">
+          <span class="step-label">步驟：</span>
+          <input type="text" class="step-input" value="${text}" placeholder="請填寫實驗步驟...">
+          <button type="button" class="btn-move-step" onclick="moveStep(this, -1)">⬆ 上移</button>
+          <button type="button" class="btn-move-step" onclick="moveStep(this, 1)">⬇ 下移</button>
           <button type="button" class="btn-del-step" onclick="removeStepInput(this)">刪除</button>
         `;
         container.appendChild(div);
       });
+
+      // 3. 渲染固定最後一個步驟
+      const lastDiv = document.createElement('div');
+      lastDiv.className = 'step-item fixed-step';
+      lastDiv.innerHTML = `
+        <span class="step-label">步驟：</span>
+        <input type="text" class="step-input" value="${LAST_STEP_TEXT}" readonly style="background-color: #e9ecef; color: #495057; font-weight: bold;">
+      `;
+      container.appendChild(lastDiv);
+
       updateStepLabels();
     }
 
-    function addStepInput() {
+    function addMiddleStepInput() {
       const container = document.getElementById('steps-container');
-      const count = container.querySelectorAll('.step-item').length;
+      const lastStepDiv = container.lastElementChild; // 固定最後一個步驟
+      
       const div = document.createElement('div');
-      div.className = 'step-item';
+      div.className = 'step-item middle-step';
       div.innerHTML = `
-        <span class="step-label">步驟 ${count + 1}：</span>
-        <input type="text" class="step-input">
+        <span class="step-label">步驟：</span>
+        <input type="text" class="step-input" placeholder="請填寫實驗步驟...">
+        <button type="button" class="btn-move-step" onclick="moveStep(this, -1)">⬆ 上移</button>
+        <button type="button" class="btn-move-step" onclick="moveStep(this, 1)">⬇ 下移</button>
         <button type="button" class="btn-del-step" onclick="removeStepInput(this)">刪除</button>
       `;
-      container.appendChild(div);
+      container.insertBefore(div, lastStepDiv);
+      updateStepLabels();
     }
 
     function removeStepInput(btn) {
       const container = document.getElementById('steps-container');
-      if (container.querySelectorAll('.step-item').length <= 1) {
-        alert('最少需要保留一個步驟！');
+      const middleSteps = container.querySelectorAll('.middle-step');
+      if (middleSteps.length <= 1) {
+        alert('中間步驟至少需保留一個！');
         return;
       }
       btn.closest('.step-item').remove();
+      updateStepLabels();
+    }
+
+    function moveStep(btn, direction) {
+      const item = btn.closest('.step-item');
+      if (direction === -1) {
+        const prev = item.previousElementSibling;
+        if (prev && prev.classList.contains('middle-step')) {
+          item.parentNode.insertBefore(item, prev);
+        }
+      } else if (direction === 1) {
+        const next = item.nextElementSibling;
+        if (next && next.classList.contains('middle-step')) {
+          item.parentNode.insertBefore(next, item);
+        }
+      }
       updateStepLabels();
     }
 
@@ -915,7 +965,7 @@
     }
 
     function getStepsData() {
-      return Array.from(document.querySelectorAll('#steps-container .step-input')).map(input => input.value);
+      return Array.from(document.querySelectorAll('#steps-container .step-input')).map(input => input.value.trim());
     }
 
     function updateFactorsPreview() {
@@ -959,7 +1009,7 @@
           fillFormData(snapshot.val());
           alert('已成功從 Firebase 雲端同步上次進度！');
         } else {
-          renderStepInputs(['', '']);
+          renderStepInputs(['']);
           renderCtrlInputs(['', '', '', '', '']);
         }
         showPage('page-step1');
@@ -969,7 +1019,6 @@
       });
     }
 
-    // 教師驗證機制
     function teacherVerify(secKey) {
       const pwd = prompt("請請教師輸入審核密碼：");
       if (pwd === "bio1234") {
@@ -1023,13 +1072,11 @@
     }
 
     function goToStep5() {
-      // 1. 檢查未通過教師認證則禁止切換
       if (!teacherCheckedSec5 || !teacherCheckedSec6) {
         alert('⚠️ 本頁面的【五、實驗設計】與【六、實驗步驟】皆必須經過老師審核解鎖後，才可以前往下一頁！');
         return;
       }
 
-      // 2. 欄位填寫檢查
       let checkList = [
         'hypo-factor',
         'hypo-groupA',
@@ -1043,11 +1090,8 @@
         'exp-conclusion'
       ];
 
-      // 加入控制變因
       document.querySelectorAll('#ctrl-variables-container .ctrl-input').forEach(input => checkList.push(input));
-      // 加入步驟
       document.querySelectorAll('#steps-container .step-input').forEach(input => checkList.push(input));
-      // 加入數據
       document.querySelectorAll('.exp-data-a').forEach(input => checkList.push(input));
       document.querySelectorAll('.exp-data-b').forEach(input => checkList.push(input));
 
@@ -1176,7 +1220,7 @@
         document.getElementById('check-container-sec5').innerHTML = '<span class="teacher-approved-badge">✅ 教師已確認審核（五、實驗設計）</span>';
       }
 
-      renderStepInputs(data.stepsData || ['', '']);
+      renderStepInputs(data.stepsData || ['']);
 
       if (data.teacherCheckedSec6) {
         teacherCheckedSec6 = true;
@@ -1338,7 +1382,6 @@
       }
     }
 
-    // 繪製圖表並直接轉為 Image (增加截圖相容性)
     function renderAdminImageChart(cardId, expName, ctrlName, avgA, avgB) {
       const card = document.getElementById(cardId);
       if(!card) return;
@@ -1407,7 +1450,6 @@
       chartBox.appendChild(img);
     }
 
-    // 📄 匯出全班 PDF 功能（一卡一頁）
     async function exportPDF() {
       const cards = document.querySelectorAll('.student-card');
       if (cards.length === 0) {
@@ -1423,7 +1465,6 @@
       const { jsPDF } = window.jspdf;
       let pdf = null;
 
-      // 暫時隱藏刪除按鈕
       const deleteBtns = document.querySelectorAll('.btn-delete-single');
       deleteBtns.forEach(btn => btn.style.display = 'none');
 
