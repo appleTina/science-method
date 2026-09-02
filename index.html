@@ -52,8 +52,8 @@
       border-radius: 6px;
       box-sizing: border-box;
       font-size: 16px;
+      width: 100%;
     }
-    select, textarea { width: 100%; }
     textarea { resize: vertical; height: 100px; }
 
     .input-error {
@@ -72,7 +72,7 @@
     }
     .member-label { font-weight: bold; white-space: nowrap; min-width: 70px; }
     .member-input-group { display: flex; align-items: center; gap: 6px; flex: 1; }
-    .input-seat { width: 90px; }
+    .input-seat { width: 90px !important; }
     .input-name { flex: 1; }
     
     .btn-group { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
@@ -120,7 +120,7 @@
     
     .preview-image { width: 100%; height: auto; border-radius: 8px; border: 1px solid #ddd; margin-top: 10px; display: block; }
     table { width: 100%; border-collapse: collapse; margin: 15px 0 25px 0; }
-    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; vertical-align: middle; }
     th { background-color: #f2f2f2; }
     
     .student-test-card { background: #fafafa; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
@@ -178,11 +178,11 @@
     .notice-text { color: #d9534f; font-weight: bold; background: #fdf7f7; padding: 8px 12px; border-left: 4px solid #d9534f; margin: 10px 0; }
     .info-box { color: #0c5460; background-color: #d1ecf1; border: 1px solid #bee5eb; padding: 12px 15px; border-radius: 6px; margin-bottom: 15px; font-size: 15px; }
 
-    .step-item, .factor-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-    .step-label, .factor-label { font-weight: bold; white-space: nowrap; min-width: 70px; }
-    .step-input, .factor-input { flex: 1; }
-    .btn-del-step, .btn-del-factor { background-color: #dc3545; width: auto; padding: 8px 15px; }
-    .btn-add-step, .btn-add-factor { background-color: #28a745; width: auto; margin-top: 5px; padding: 8px 16px; }
+    .step-item, .factor-item, .ctrl-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .step-label, .factor-label, .ctrl-label { font-weight: bold; white-space: nowrap; min-width: 85px; }
+    .step-input, .factor-input, .ctrl-input { flex: 1; }
+    .btn-del-step, .btn-del-factor, .btn-del-ctrl { background-color: #dc3545; width: auto; padding: 8px 15px; }
+    .btn-add-step, .btn-add-factor, .btn-add-ctrl { background-color: #28a745; width: auto; margin-top: 5px; padding: 8px 16px; }
 
     .group-desc-box { display: flex; gap: 20px; margin-bottom: 15px; }
     .group-desc-item { flex: 1; background: #f8f9fa; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0; }
@@ -210,6 +210,21 @@
     }
     .btn-back-to-top:hover {
       background-color: #0056b3;
+    }
+
+    /* 表格設計專用CSS */
+    .table-exp-design {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    .table-exp-design td, .table-exp-design th {
+      border: 1px solid #222;
+      padding: 12px;
+    }
+    .bg-header {
+      background-color: #f8f9fa;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -335,16 +350,52 @@
       </section>
       
       <section>
-        <h3>五、設計與進行實驗</h3>
-        <table>
-          <tr><th>變因類別</th><th>內容設定</th></tr>
-          <tr><td>操作變因</td><td>實驗組：<input type="text" id="exp-group-a" style="width:80%"><br><br>對照組：<input type="text" id="exp-group-b" style="width:80%"></td></tr>
-          <tr><td>應變變因</td><td><input type="text" id="exp-variable" value="遊戲反應時間" style="width:80%"></td></tr>
-          <tr><td>控制變因</td><td><textarea id="exp-control"></textarea></td></tr>
+        <h3>五、實驗設計</h3>
+        <p style="font-size: 15px; color: #2c3e50; line-height: 1.6;">
+          <strong>藉由實作來驗證我們的假說是必須的步驟，請設計實驗以驗證假說是可信的<span style="text-decoration: underline; color: #dc3545;">(老師檢查後才可做實驗)</span>。請參考範例設計實驗。</strong>
+        </p>
+
+        <table class="table-exp-design">
+          <tr>
+            <td colspan="3" style="text-align: left; background-color: #fafafa;">
+              <strong>我們的假說：</strong>
+              <span id="display-hypo-text" style="color: #0056b3; font-weight: bold;">（請先在上方完成假說填寫）</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="bg-header" style="width: 25%;">
+              操作變因<br><span style="font-size: 13px; font-weight: normal; color: #666;">(不一樣的)</span>
+            </td>
+            <td style="width: 37.5%;">
+              <div style="font-weight: bold; margin-bottom: 6px;">實驗組</div>
+              <input type="text" id="exp-group-a" placeholder="請填寫實驗組設定">
+            </td>
+            <td style="width: 37.5%;">
+              <div style="font-weight: bold; margin-bottom: 6px;">對照組</div>
+              <input type="text" id="exp-group-b" placeholder="請填寫對照組設定">
+            </td>
+          </tr>
+          <tr>
+            <td class="bg-header">
+              應變變因<br><span style="font-size: 13px; font-weight: normal; color: #666;">(測量項目)</span>
+            </td>
+            <td colspan="2">
+              <input type="text" id="exp-variable" value="遊戲反應時間">
+            </td>
+          </tr>
+          <tr>
+            <td class="bg-header">
+              控制變因<br><span style="font-size: 13px; font-weight: normal; color: #666;">(相同的)</span>
+            </td>
+            <td colspan="2" style="text-align: left;">
+              <div id="ctrl-variables-container"></div>
+              <button type="button" class="btn-add-ctrl" onclick="addCtrlInput()">+ 增加控制變因欄位</button>
+            </td>
+          </tr>
         </table>
         
-        <div id="check-container-sec5">
-          <button type="button" class="btn-teacher-check" onclick="teacherVerify('sec5')">🔒 教師確認（變因設計）</button>
+        <div id="check-container-sec5" style="margin-top: 15px;">
+          <button type="button" class="btn-teacher-check" onclick="teacherVerify('sec5')">🔒 教師確認（五、實驗設計）</button>
         </div>
       </section>
 
@@ -354,7 +405,7 @@
         <button type="button" class="btn-add-step" onclick="addStepInput()">+ 新增步驟</button>
         <br><br>
         <div id="check-container-sec6">
-          <button type="button" class="btn-teacher-check" onclick="teacherVerify('sec6')">🔒 教師確認（實驗步驟）</button>
+          <button type="button" class="btn-teacher-check" onclick="teacherVerify('sec6')">🔒 教師確認（六、實驗步驟）</button>
         </div>
       </section>
 
@@ -485,7 +536,20 @@
     // 頁面初始化
     document.addEventListener('DOMContentLoaded', () => {
       renderFactorInputs(['', '', '']);
+      renderCtrlInputs(['', '', '', '', '']);
+      
+      // 綁定假說文字實時預覽
+      ['hypo-factor', 'hypo-groupA', 'hypo-groupB'].forEach(id => {
+        document.getElementById(id).addEventListener('input', updateHypoPreview);
+      });
     });
+
+    function updateHypoPreview() {
+      const f = document.getElementById('hypo-factor').value.trim() || '___';
+      const a = document.getElementById('hypo-groupA').value.trim() || '___';
+      const b = document.getElementById('hypo-groupB').value.trim() || '___';
+      document.getElementById('display-hypo-text').textContent = `我覺得【${f}】會影響遊戲反應時間，【${a}】反應通常比【${b}】快。`;
+    }
 
     // 回到頂部按鈕控制邏輯
     window.onscroll = function() {
@@ -610,6 +674,58 @@
 
     function getFactorsData() {
       return Array.from(document.querySelectorAll('#factors-container .factor-input')).map(input => input.value.trim());
+    }
+
+    /* 渲染與管理 控制變因 欄位 */
+    function renderCtrlInputs(ctrlArray) {
+      const container = document.getElementById('ctrl-variables-container');
+      container.innerHTML = '';
+      const ctrls = (ctrlArray && ctrlArray.length >= 5) ? ctrlArray : ['', '', '', '', ''];
+      
+      ctrls.forEach((text, idx) => {
+        const div = document.createElement('div');
+        div.className = 'ctrl-item';
+        div.innerHTML = `
+          <span class="ctrl-label">控制變因 ${idx + 1}：</span>
+          <input type="text" class="ctrl-input" value="${text}" placeholder="例如：測驗設備、環境燈光、測試次數...">
+          <button type="button" class="btn-del-ctrl" onclick="removeCtrlInput(this)">刪除</button>
+        `;
+        container.appendChild(div);
+      });
+      updateCtrlLabels();
+    }
+
+    function addCtrlInput() {
+      const container = document.getElementById('ctrl-variables-container');
+      const count = container.querySelectorAll('.ctrl-item').length;
+      const div = document.createElement('div');
+      div.className = 'ctrl-item';
+      div.innerHTML = `
+        <span class="ctrl-label">控制變因 ${count + 1}：</span>
+        <input type="text" class="ctrl-input" placeholder="例如：測驗設備、環境燈光、測試次數...">
+        <button type="button" class="btn-del-ctrl" onclick="removeCtrlInput(this)">刪除</button>
+      `;
+      container.appendChild(div);
+    }
+
+    function removeCtrlInput(btn) {
+      const container = document.getElementById('ctrl-variables-container');
+      if (container.querySelectorAll('.ctrl-item').length <= 5) {
+        alert('控制變因至少需填寫 5 個！無法再進行刪除。');
+        return;
+      }
+      btn.closest('.ctrl-item').remove();
+      updateCtrlLabels();
+    }
+
+    function updateCtrlLabels() {
+      document.querySelectorAll('#ctrl-variables-container .ctrl-item').forEach((item, idx) => {
+        item.querySelector('.ctrl-label').textContent = `控制變因 ${idx + 1}：`;
+      });
+    }
+
+    function getCtrlData() {
+      return Array.from(document.querySelectorAll('#ctrl-variables-container .ctrl-input')).map(input => input.value.trim());
     }
 
     function renderReactionTables() {
@@ -812,6 +928,7 @@
       document.getElementById(pageId).classList.add('active');
       if(pageId === 'page-step4') {
         updateFactorsPreview();
+        updateHypoPreview();
       }
     }
 
@@ -843,6 +960,7 @@
           alert('已成功從 Firebase 雲端同步上次進度！');
         } else {
           renderStepInputs(['', '']);
+          renderCtrlInputs(['', '', '', '', '']);
         }
         showPage('page-step1');
       }).catch(err => {
@@ -857,7 +975,7 @@
       if (pwd === "bio1234") {
         if (secKey === 'sec5') {
           teacherCheckedSec5 = true;
-          document.getElementById('check-container-sec5').innerHTML = '<span class="teacher-approved-badge">✅ 教師已確認審核（五、設計變因）</span>';
+          document.getElementById('check-container-sec5').innerHTML = '<span class="teacher-approved-badge">✅ 教師已確認審核（五、實驗設計）</span>';
         } else if (secKey === 'sec6') {
           teacherCheckedSec6 = true;
           document.getElementById('check-container-sec6').innerHTML = `
@@ -905,6 +1023,13 @@
     }
 
     function goToStep5() {
+      // 1. 檢查未通過教師認證則禁止切換
+      if (!teacherCheckedSec5 || !teacherCheckedSec6) {
+        alert('⚠️ 本頁面的【五、實驗設計】與【六、實驗步驟】皆必須經過老師審核解鎖後，才可以前往下一頁！');
+        return;
+      }
+
+      // 2. 欄位填寫檢查
       let checkList = [
         'hypo-factor',
         'hypo-groupA',
@@ -912,17 +1037,21 @@
         'exp-group-a',
         'exp-group-b',
         'exp-variable',
-        'exp-control',
         'record-item',
         'desc-exp-group',
         'desc-ctrl-group',
         'exp-conclusion'
       ];
+
+      // 加入控制變因
+      document.querySelectorAll('#ctrl-variables-container .ctrl-input').forEach(input => checkList.push(input));
+      // 加入步驟
       document.querySelectorAll('#steps-container .step-input').forEach(input => checkList.push(input));
+      // 加入數據
       document.querySelectorAll('.exp-data-a').forEach(input => checkList.push(input));
       document.querySelectorAll('.exp-data-b').forEach(input => checkList.push(input));
 
-      if (!validateInputs(checkList, '階段四欄位均為必填！')) return;
+      if (!validateInputs(checkList, '請將階段四的所有欄位（包含5個控制變因與所有步驟）補充完整！')) return;
 
       saveDataSilently();
       showPage('page-step5');
@@ -976,7 +1105,7 @@
         expGroupA: document.getElementById('exp-group-a').value,
         expGroupB: document.getElementById('exp-group-b').value,
         expVariable: document.getElementById('exp-variable').value,
-        expControl: document.getElementById('exp-control').value,
+        expControlList: getCtrlData(),
         teacherCheckedSec5: teacherCheckedSec5,
         stepsData: getStepsData(),
         teacherCheckedSec6: teacherCheckedSec6,
@@ -1028,15 +1157,23 @@
       document.getElementById('hypo-factor').value = data.hypoFactor || '';
       document.getElementById('hypo-groupA').value = data.hypoGroupA || '';
       document.getElementById('hypo-groupB').value = data.hypoGroupB || '';
+      updateHypoPreview();
 
       document.getElementById('exp-group-a').value = data.expGroupA || '';
       document.getElementById('exp-group-b').value = data.expGroupB || '';
       document.getElementById('exp-variable').value = data.expVariable || '';
-      document.getElementById('exp-control').value = data.expControl || '';
+      
+      if (data.expControlList && Array.isArray(data.expControlList)) {
+        renderCtrlInputs(data.expControlList);
+      } else if (data.expControl) {
+        renderCtrlInputs(data.expControl.split('\n'));
+      } else {
+        renderCtrlInputs(['', '', '', '', '']);
+      }
 
       if (data.teacherCheckedSec5) {
         teacherCheckedSec5 = true;
-        document.getElementById('check-container-sec5').innerHTML = '<span class="teacher-approved-badge">✅ 教師已確認審核（五、設計變因）</span>';
+        document.getElementById('check-container-sec5').innerHTML = '<span class="teacher-approved-badge">✅ 教師已確認審核（五、實驗設計）</span>';
       }
 
       renderStepInputs(data.stepsData || ['', '']);
@@ -1121,6 +1258,7 @@
         }
 
         let factorsStr = record.factorsList ? record.factorsList.join('、') : (record.factors || '未填寫');
+        let ctrlStr = record.expControlList ? record.expControlList.join('、') : (record.expControl || '未填寫');
         let stepsStr = record.stepsData ? record.stepsData.map((s, i) => `<li>步驟${i+1}：${s}</li>`).join('') : '無';
 
         let dataAStr = record.expDataA ? record.expDataA.join(', ') : '';
@@ -1152,12 +1290,12 @@
             </div>
 
             <div class="detail-section">
-              <h5>四、提出假說與變因</h5>
+              <h5>四與五、假說與實驗設計</h5>
               <p><strong>假說：</strong>覺得 ${record.hypoFactor || '-'} 會影響遊戲反應時間，${record.hypoGroupA || '-'} 反應比 ${record.hypoGroupB || '-'} 快。</p>
               <p><strong>操作變因：</strong>實驗組[${record.expGroupA || '-'}] / 對照組[${record.expGroupB || '-'}]</p>
               <p><strong>應變變因：</strong>${record.expVariable || '-'}</p>
-              <p><strong>控制變因：</strong>${record.expControl || '-'}</p>
-              <p><strong>變因審核：</strong>${record.teacherCheckedSec5 ? '✅ 已通過' : '❌ 未審核'}</p>
+              <p><strong>控制變因：</strong>${ctrlStr}</p>
+              <p><strong>實驗設計審核：</strong>${record.teacherCheckedSec5 ? '✅ 已通過' : '❌ 未審核'}</p>
             </div>
 
             <div class="detail-section">
@@ -1269,7 +1407,7 @@
       chartBox.appendChild(img);
     }
 
-    // 📄 匯出全班 PDF 功能（一卡一頁，方便簡報投影或列印）
+    // 📄 匯出全班 PDF 功能（一卡一頁）
     async function exportPDF() {
       const cards = document.querySelectorAll('.student-card');
       if (cards.length === 0) {
@@ -1374,6 +1512,7 @@
         ).join(' / ') : '';
 
         let factorsStr = r.factorsList ? r.factorsList.join(';') : (r.factors || '');
+        let ctrlStr = r.expControlList ? r.expControlList.join(';') : (r.expControl || '');
         let stepsStr = r.stepsData ? r.stepsData.join('; ') : '';
         let dataAStr = r.expDataA ? r.expDataA.join(';') : '';
         let dataBStr = r.expDataB ? r.expDataB.join(';') : '';
@@ -1390,7 +1529,7 @@
           `"${(r.hypoGroupB || '').replace(/"/g, '""')}"`,
           `"${(r.expGroupA || '').replace(/"/g, '""')}"`,
           `"${(r.expGroupB || '').replace(/"/g, '""')}"`,
-          `"${(r.expControl || '').replace(/"/g, '""')}"`,
+          `"${ctrlStr.replace(/"/g, '""')}"`,
           r.teacherCheckedSec5 ? "已通過" : "未審核",
           `"${stepsStr.replace(/"/g, '""')}"`,
           r.teacherCheckedSec6 ? "已通過" : "未審核",
